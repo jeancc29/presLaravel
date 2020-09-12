@@ -20,3 +20,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/customers', 'CustomerController@index');
 Route::post('/customers/store', 'CustomerController@store');
+
+Route::get('/routes', 'RouteController@index');
+Route::post('/routes/store', 'RouteController@store');
