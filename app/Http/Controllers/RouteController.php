@@ -41,7 +41,7 @@ class RouteController extends Controller
     {
         $datos = request()->validate([
             'data.id' => '',
-            'data.descripcion' => '',
+            'data.descripcion' => 'required',
         ])["data"];
 
         $ruta = Route::updateOrCreate(
@@ -98,6 +98,31 @@ class RouteController extends Controller
      */
     public function destroy(Route $route)
     {
-        //
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.descripcion' => '',
+        ])["data"];
+
+        try {
+            $ruta = Route::whereId($datos['id'])->first();
+            if($ruta != null)
+            {
+                $ruta->delete();
+                return Response::json([
+                    "mensaje" => "Se ha eliminado correctamente",
+                    "ruta" => $ruta
+                ]);
+            }else{
+                return Response::json([
+                    "mensaje" => "Ruta no existe",
+                    "errores" => 1,
+                    "ruta" => $datos
+                ]);
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+            \abort(400, "Error: " . $th);
+        }
+
     }
 }

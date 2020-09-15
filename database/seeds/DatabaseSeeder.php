@@ -11,19 +11,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->truncateTables(["countries", "states", "cities", "types"]);
+        $this->truncateTables(["boxes", "countries", "states", "cities", "types"]);
+        $this->call(BoxSeeder::class);
         $this->call(CountrySeeder::class);
         $this->call(StateSeeder::class);
         $this->call(TypeSeeder::class);
     }
 
-    public function truncateTables(array $tables){
-       
-
-            DB::statement('SET FOREIGN_KEY_CHECKS = 0');
-            foreach($tables as $t){
-                DB::table($t)->truncate();
-            }
-     
+    public function truncateTables(array $tables)
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS = 0');
+        foreach($tables as $t){
+            DB::table($t)->truncate();
+        }
     }
 }

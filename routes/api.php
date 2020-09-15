@@ -23,3 +23,8 @@ Route::post('/customers/store', 'CustomerController@store');
 
 Route::get('/routes', 'RouteController@index');
 Route::post('/routes/store', 'RouteController@store');
+Route::post('/routes/delete', 'RouteController@destroy');
+
+Route::get('/expenses', 'ExpenseController@index');
+Route::post('/expenses/store', 'ExpenseController@store');
+Route::post('/expenses/delete', 'ExpenseController@destroy');

@@ -1,0 +1,31 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Expense extends Model
+{
+    protected $fillable = [
+        'fecha', 
+        'concepto', 
+        'monto', 
+        'comentario', 
+        'idCaja', 
+        'idTipo', 
+        'idUsuario', 
+    ];
+
+    public function tipo()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipo');
+    }
+
+    public function caja()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Box', 'id', 'idCaja');
+    }
+
+}
