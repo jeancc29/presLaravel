@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Box;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response; 
 
 class BoxController extends Controller
 {
@@ -14,7 +15,10 @@ class BoxController extends Controller
      */
     public function index()
     {
-        //
+        return Response::json([
+            "mensaje" => "",
+            "cajas" => Box::where("descripcion", '!=', "Ninguna")->get(),
+        ], 201);
     }
 
     /**
@@ -24,7 +28,7 @@ class BoxController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -35,7 +39,21 @@ class BoxController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = request()->validate([
+            "data.id" => "",
+            "data.descripcion" => "",
+        ])["data"];
+
+
+        $caja = Box::updateOrCreate(
+            ["id" => $data["id"]],
+            ["descripcion" => $data["descripcion"]]
+        );
+
+        return Response::json([
+            "mensaje" => "Se ha guardado correctamente",
+            "caja" => $caja
+        ]);
     }
 
     /**
@@ -80,6 +98,21 @@ class BoxController extends Controller
      */
     public function destroy(Box $box)
     {
-        //
+        $data = request()->validate([
+            "data.id" => "required",
+            "data.descripcion" => "",
+        ])["data"];
+
+        $caja = Box::whereId($data["id"])->first();
+        if($caja != null){
+            $caja->delete();
+
+            return Response::json([
+                "mensaje" => "La caja se ha eliminado correctamente",
+                "caja" => $caja
+            ]);
+        }else{
+            \abort(402, "La caja no existe");
+        }
     }
 }

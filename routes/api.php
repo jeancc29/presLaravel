@@ -28,3 +28,7 @@ Route::post('/routes/delete', 'RouteController@destroy');
 Route::get('/expenses', 'ExpenseController@index');
 Route::post('/expenses/store', 'ExpenseController@store');
 Route::post('/expenses/delete', 'ExpenseController@destroy');
+
+Route::get('/boxes', 'BoxController@index');
+Route::post('/boxes/store', 'BoxController@store');
+Route::post('/boxes/delete', 'BoxController@destroy');

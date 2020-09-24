@@ -16,7 +16,7 @@ class CreateBoxesTable extends Migration
         Schema::create('boxes', function (Blueprint $table) {
             $table->bigIncrements("id");
             $table->string("descripcion");
-            $table->double("balanceInicial");
+            $table->double("balanceInicial")->default(0);
             $table->timestamps();
         });
     }
