@@ -42,12 +42,22 @@ class BoxController extends Controller
         $data = request()->validate([
             "data.id" => "",
             "data.descripcion" => "",
+            "data.validarDesgloseEfectivo" => "",
+            "data.validarDesgloseCheques" => "",
+            "data.validarDesgloseTarjetas" => "",
+            "data.validarDesgloseTransferencias" => "",
         ])["data"];
 
 
         $caja = Box::updateOrCreate(
             ["id" => $data["id"]],
-            ["descripcion" => $data["descripcion"]]
+            [
+                "descripcion" => $data["descripcion"],
+                "validarDesgloseEfectivo" => $data["validarDesgloseEfectivo"],
+                "validarDesgloseCheques" => $data["validarDesgloseCheques"],
+                "validarDesgloseTarjetas" => $data["validarDesgloseTarjetas"],
+                "validarDesgloseTransferencias" => $data["validarDesgloseTransferencias"],
+            ]
         );
 
         return Response::json([
