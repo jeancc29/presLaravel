@@ -17,6 +17,10 @@ class CreateBoxesTable extends Migration
             $table->bigIncrements("id");
             $table->string("descripcion");
             $table->double("balanceInicial")->default(0);
+            $table->boolean("validarDesgloseEfectivo")->default(0);
+            $table->boolean("validarDesgloseCheques")->default(0);
+            $table->boolean("validarDesgloseTarjetas")->default(0);
+            $table->boolean("validarDesgloseTransferencias")->default(0);
             $table->timestamps();
         });
     }

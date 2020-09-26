@@ -56,6 +56,29 @@ class BoxController extends Controller
         ]);
     }
 
+    public function abrirCaja(Request $request)
+    {
+        $data = request()->validate([
+            "data.id" => "required",
+            "data.balanceInicial" => "",
+            "data.descripcion" => "",
+        ])["data"];
+
+        $caja = Box::whereId($data["id"])->first();
+        if($caja != null){
+            $caja->balanceInicial = $data["balanceInicial"];
+            $caja->save();
+        }else{
+            return Response::json([
+                "message" => "La caja no existe"
+            ], 402);
+        }
+
+        return Response::json([
+            "mensaje" => "Se ha guardado correctamente",
+        ]);
+    }
+
     /**
      * Display the specified resource.
      *
