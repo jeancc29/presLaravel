@@ -9,5 +9,9 @@ class Box extends Model
     protected $fillable = [
         'descripcion', 
         'balanceInicial', 
+        'validarDesgloseEfectivo', 
+        'validarDesgloseCheques', 
+        'validarDesgloseTarjetas', 
+        'validarDesgloseTransferencias', 
     ];
 }
