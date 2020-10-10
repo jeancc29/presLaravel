@@ -33,3 +33,11 @@ Route::get('/boxes', 'BoxController@index');
 Route::post('/boxes/store', 'BoxController@store');
 Route::post('/boxes/open', 'BoxController@abrirCaja');
 Route::post('/boxes/delete', 'BoxController@destroy');
+
+Route::get('/banks', 'BankController@index');
+Route::post('/banks/store', 'BankController@store');
+Route::post('/banks/delete', 'BankController@destroy');
+
+Route::get('/accounts', 'AccountController@index');
+Route::post('/accounts/store', 'AccountController@store');
+Route::post('/accounts/delete', 'AccountController@destroy');
