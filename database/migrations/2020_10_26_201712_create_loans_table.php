@@ -15,6 +15,7 @@ class CreateLoansTable extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->bigIncrements("id");
+            $table->decimal("monto", 20, 2);
             $table->double("porcentajeInteres", 5, 2);
             $table->integer("numeroCuotas");
             $table->date("fecha");
@@ -39,6 +40,7 @@ class CreateLoansTable extends Migration
             //la llave foranea del idGasto se agregara despues de crear la tabla Loanexpenses
             $table->foreign("idDesembolso")->references("id")->on("disbursements");
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -49,6 +51,8 @@ class CreateLoansTable extends Migration
      */
     public function down()
     {
+        $table->dropSoftDeletes();
+        $table->dropForeign(['idDesembolso', 'idTipoAmortizacion', 'idTipoPlazo', 'idCliente', 'idCaja']);
         Schema::dropIfExists('loans');
     }
 }

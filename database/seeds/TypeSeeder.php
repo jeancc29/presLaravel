@@ -29,5 +29,32 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Comisiones Bancarias"], ["renglon" => "gasto"]);
         \App\Type::updateOrCreate(["descripcion" => "Misceláneo"], ["renglon" => "gasto"]);
         \App\Type::updateOrCreate(["descripcion" => "Almuerzo Administrativo"], ["renglon" => "gasto"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Cuota fija"], ["renglon" => "amortizacion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Disminuir cuota"], ["renglon" => "amortizacion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Interes fijo"], ["renglon" => "amortizacion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Capital al final"], ["renglon" => "amortizacion"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Diario"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Semanal"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Catorcenal"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "15 y fin de mes"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Mensual"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Anual"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Semestral"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Trimestral"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Ult. dia del mes"], ["renglon" => "plazo"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Gastos de cierre"], ["renglon" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Tasacion"], ["renglon" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Cargos por seguro"], ["renglon" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Otros gastos de cierre"], ["renglon" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Gastos del gps"], ["renglon" => "gastoPrestamo"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Efectivo"], ["renglon" => "desembolso"]);
+        \App\Type::updateOrCreate(["descripcion" => "Cheque"], ["renglon" => "desembolso"]);
+        \App\Type::updateOrCreate(["descripcion" => "Transferencia"], ["renglon" => "desembolso"]);
+        \App\Type::updateOrCreate(["descripcion" => "Efectivo en ruta"], ["renglon" => "desembolso"]);
+
     }
 }

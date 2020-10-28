@@ -14,7 +14,9 @@ class LoanController extends Controller
      */
     public function index()
     {
-        //
+        return Response::json([
+            "prestamos" => Loan::cursor()
+        ]);
     }
 
     /**
@@ -35,7 +37,32 @@ class LoanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.cliente' => '',
+            'data.tipoPlazo' => '',
+            'data.tipoAmortizacion' => '',
+            'data.monto' => '',
+            'data.porcentajeInteres' => '',
+            'data.numeroCuotas' => '',
+            'data.fecha' => '',
+            'data.fechaPrimerPago' => '',
+            'data.caja' => '',
+            'data.codigo' => '',
+            'data.porcentajeMora' => '',
+            'data.diasGracia' => '',
+            'data.cobrador' => '',
+            'data.gasto' => '',
+            'data.garante' => '',
+            'data.diasExcluidos' => '',
+            'data.desembolso' => '',
+            'data.usuario' => '',
+        ])["data"];
+
+        return Response::json([
+            "mensaje" => "se ha guardado correctamente",
+            "datos" => $datos
+        ])
     }
 
     /**
