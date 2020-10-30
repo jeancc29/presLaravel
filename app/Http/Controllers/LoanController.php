@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Loan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response; 
+
 
 class LoanController extends Controller
 {
@@ -15,7 +17,9 @@ class LoanController extends Controller
     public function index()
     {
         return Response::json([
-            "prestamos" => Loan::cursor()
+            "prestamos" => Loan::cursor(),
+            "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
+            "cajas" => \App\Box::cursor(),
         ]);
     }
 
@@ -62,7 +66,7 @@ class LoanController extends Controller
         return Response::json([
             "mensaje" => "se ha guardado correctamente",
             "datos" => $datos
-        ])
+        ]);
     }
 
     /**

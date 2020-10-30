@@ -24,6 +24,25 @@ class CustomerController extends Controller
         ], 201);
     }
 
+    public function search()
+    {
+        $datos = request()->validate([
+            'datos' => '',
+        ]);
+        
+        $searchTerm = $datos["datos"];
+        $clientes = Customer::
+            query()->where('nombres', 'LIKE', "%{$searchTerm}%") 
+            ->orWhere('apellidos', 'LIKE', "%{$searchTerm}%")
+            ->select("id", "nombres", "apellidos", "idDocumento")
+            ->limit(10)
+            ->get();
+
+        return Response::json([
+            'clientes' => \App\Http\Resources\CustomerUltraSmallResource::collection($clientes),
+        ], 201);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

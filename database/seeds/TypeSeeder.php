@@ -56,5 +56,25 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Transferencia"], ["renglon" => "desembolso"]);
         \App\Type::updateOrCreate(["descripcion" => "Efectivo en ruta"], ["renglon" => "desembolso"]);
 
+        \App\Type::updateOrCreate(["descripcion" => "Vehiculo"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Infraestructura"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Joyeria"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Electrodomestico"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Inmueble"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Telefono"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "garantia"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Nuevo"], ["renglon" => "condicionGarantia"]);
+        \App\Type::updateOrCreate(["descripcion" => "Usado"], ["renglon" => "condicionGarantia"]);
+        
+        \App\Type::updateOrCreate(["descripcion" => "Sedan"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Compacto"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Jeepeta"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Camioneta"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Coupe/Sport"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Camion"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Motor"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "tipoVehiculo"]);
+
     }
 }

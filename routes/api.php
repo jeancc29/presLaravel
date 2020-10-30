@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::get('/customers', 'CustomerController@index');
+Route::get('/customers/search', 'CustomerController@search');
 Route::post('/customers/store', 'CustomerController@store');
 
 Route::get('/routes', 'RouteController@index');
@@ -41,3 +42,9 @@ Route::post('/banks/delete', 'BankController@destroy');
 Route::get('/accounts', 'AccountController@index');
 Route::post('/accounts/store', 'AccountController@store');
 Route::post('/accounts/delete', 'AccountController@destroy');
+
+Route::get('/loans', 'LoanController@index');
+Route::get('/loans/search', 'LoanController@search');
+Route::post('/loans/store', 'LoanController@store');
+Route::post('/loans/delete', 'LoanController@destroy');
+
