@@ -32,12 +32,12 @@ class CreateGuaranteesTable extends Migration
             $table->integer("capacidadCarga");
             $table->string("placaAnterior", 30);
             $table->date("fechaExpedicion", 30);
-            $table->string("foto");
-            $table->string("fotoMatricula");
-            $table->string("fotoLicencia");
+            $table->string("foto")->nullable();
+            $table->string("fotoMatricula")->nullable();
+            $table->string("fotoLicencia")->nullable();
             $table->unsignedBigInteger("idPrestamo");
             $table->unsignedInteger("idTipo");
-            $table->unsignedInteger("idTipoEmision");
+            // $table->unsignedInteger("idTipoEmision");
             $table->unsignedInteger("idTipoCondicion");
             $table->timestamps();
         });
