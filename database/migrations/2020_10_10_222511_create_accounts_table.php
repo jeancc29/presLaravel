@@ -16,8 +16,12 @@ class CreateAccountsTable extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->increments("id");
             $table->string("descripcion");
+            $table->unsignedInteger("idBanco");
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign("idBanco")->references("id")->on("banks");
+
         });
     }
 
@@ -29,6 +33,7 @@ class CreateAccountsTable extends Migration
     public function down()
     {
         $table->dropSoftDeletes();
+        $table->dropForeign(["idBanco"]);
         Schema::dropIfExists('accounts');
     }
 }

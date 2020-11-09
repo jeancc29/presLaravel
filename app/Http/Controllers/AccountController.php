@@ -19,6 +19,7 @@ class AccountController extends Controller
         return Response::json([
             "mensaje" => "",
             "cuentas" => Account::take(20)->get(),
+            "bancos" => \App\Bank::take(50)->get()
         ], 201);
     }
 
