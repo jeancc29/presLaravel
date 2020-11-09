@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Loan;
+use App\Loansetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response; 
 
-
-class LoanController extends Controller
+class LoansettingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,11 +16,8 @@ class LoanController extends Controller
     public function index()
     {
         return Response::json([
-            "prestamos" => Loan::cursor(),
-            "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
-            "cajas" => \App\Box::cursor(),
-            "configuracionPrestamo" => \App\Loansetting::first()
-        ]);
+            "configuracionPrestamo" => Loansetting::first()
+        ], 201);
     }
 
     /**
@@ -44,39 +40,34 @@ class LoanController extends Controller
     {
         $datos = request()->validate([
             'data.id' => '',
-            'data.cliente' => '',
-            'data.tipoPlazo' => '',
-            'data.tipoAmortizacion' => '',
-            'data.monto' => '',
-            'data.porcentajeInteres' => '',
-            'data.numeroCuotas' => '',
-            'data.fecha' => '',
-            'data.fechaPrimerPago' => '',
-            'data.caja' => '',
-            'data.codigo' => '',
-            'data.porcentajeMora' => '',
-            'data.diasGracia' => '',
-            'data.cobrador' => '',
+            'data.garantia' => '',
             'data.gasto' => '',
-            'data.garante' => '',
-            'data.diasExcluidos' => '',
-            'data.desembolso' => '',
-            'data.usuario' => '',
         ])["data"];
+
+        $configuracion = Loansetting::updateOrCreate(
+            [
+                "id" => $datos["id"]
+            ],
+            [
+                "garantia" => $datos["garantia"],
+                "gasto" => $datos["gasto"],
+            ]
+        );
 
         return Response::json([
             "mensaje" => "se ha guardado correctamente",
-            "datos" => $datos
-        ]);
+            "configuracionPrestamo" => $configuracion
+        ], 201);
+ 
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Loan  $loan
+     * @param  \App\Loansetting  $loansetting
      * @return \Illuminate\Http\Response
      */
-    public function show(Loan $loan)
+    public function show(Loansetting $loansetting)
     {
         //
     }
@@ -84,10 +75,10 @@ class LoanController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Loan  $loan
+     * @param  \App\Loansetting  $loansetting
      * @return \Illuminate\Http\Response
      */
-    public function edit(Loan $loan)
+    public function edit(Loansetting $loansetting)
     {
         //
     }
@@ -96,10 +87,10 @@ class LoanController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Loan  $loan
+     * @param  \App\Loansetting  $loansetting
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Loan $loan)
+    public function update(Request $request, Loansetting $loansetting)
     {
         //
     }
@@ -107,10 +98,10 @@ class LoanController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Loan  $loan
+     * @param  \App\Loansetting  $loansetting
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Loan $loan)
+    public function destroy(Loansetting $loansetting)
     {
         //
     }

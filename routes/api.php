@@ -48,3 +48,5 @@ Route::get('/loans/search', 'LoanController@search');
 Route::post('/loans/store', 'LoanController@store');
 Route::post('/loans/delete', 'LoanController@destroy');
 
+Route::get('/loansettings', 'LoansettingController@index');
+Route::post('/loansettings/store', 'LoansettingController@store');
