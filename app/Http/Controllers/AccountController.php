@@ -18,7 +18,7 @@ class AccountController extends Controller
     {
         return Response::json([
             "mensaje" => "",
-            "cuentas" => Account::take(20)->get(),
+            "cuentas" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
             "bancos" => \App\Bank::take(50)->get()
         ], 201);
     }
@@ -48,7 +48,7 @@ class AccountController extends Controller
         ])["data"];
 
 
-        $banco = Account::updateOrCreate(
+        $cuenta = Account::updateOrCreate(
             ["id" => $data["id"]],
             [
                 "descripcion" => $data["descripcion"],
@@ -58,7 +58,7 @@ class AccountController extends Controller
 
         return Response::json([
             "mensaje" => "Se ha guardado correctamente",
-            "cuenta" => $cuenta
+            "cuenta" => new \App\Http\Resources\AccountResource($cuenta)
         ]);
     }
 
@@ -118,7 +118,7 @@ class AccountController extends Controller
                 "cuenta" => $cuenta
             ]);
         }else{
-            \abort(402, "La caja no existe");
+            \abort(402, "La cuenta no existe");
         }
     }
 }
