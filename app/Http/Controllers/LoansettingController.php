@@ -42,6 +42,7 @@ class LoansettingController extends Controller
             'data.id' => '',
             'data.garantia' => '',
             'data.gasto' => '',
+            'data.desembolso' => '',
         ])["data"];
 
         $configuracion = Loansetting::updateOrCreate(
@@ -51,6 +52,7 @@ class LoansettingController extends Controller
             [
                 "garantia" => $datos["garantia"],
                 "gasto" => $datos["gasto"],
+                "desembolso" => $datos["desembolso"],
             ]
         );
 
