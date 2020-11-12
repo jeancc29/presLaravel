@@ -20,6 +20,8 @@ class LoanController extends Controller
             "prestamos" => Loan::cursor(),
             "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
             "cajas" => \App\Box::cursor(),
+            "bancos" => \App\Bank::cursor(),
+            "cuentas" => \App\Account::get(),
             "configuracionPrestamo" => \App\Loansetting::first()
         ]);
     }
