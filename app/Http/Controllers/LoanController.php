@@ -22,6 +22,7 @@ class LoanController extends Controller
             "cajas" => \App\Box::cursor(),
             "bancos" => \App\Bank::cursor(),
             "cuentas" => \App\Account::get(),
+            "dias" => \App\Day::get(),
             "configuracionPrestamo" => \App\Loansetting::first()
         ]);
     }
