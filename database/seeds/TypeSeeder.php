@@ -38,6 +38,7 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Diario"], ["renglon" => "plazo"]);
         \App\Type::updateOrCreate(["descripcion" => "Semanal"], ["renglon" => "plazo"]);
         \App\Type::updateOrCreate(["descripcion" => "Bisemanal"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Quincenal"], ["renglon" => "plazo"]);
         \App\Type::updateOrCreate(["descripcion" => "15 y fin de mes"], ["renglon" => "plazo"]);
         \App\Type::updateOrCreate(["descripcion" => "Mensual"], ["renglon" => "plazo"]);
         \App\Type::updateOrCreate(["descripcion" => "Anual"], ["renglon" => "plazo"]);
