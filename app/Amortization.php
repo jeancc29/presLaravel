@@ -16,5 +16,6 @@ class Amortization extends Model
         "capitalRestante",
         "capitalSaldado",
         "interesSaldado",
+        "fecha",
     ];
 }

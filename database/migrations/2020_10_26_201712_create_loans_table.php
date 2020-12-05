@@ -17,6 +17,7 @@ class CreateLoansTable extends Migration
             $table->bigIncrements("id");
             $table->decimal("monto", 20, 2);
             $table->double("porcentajeInteres", 5, 2);
+            $table->double("porcentajeInteresAnual", 5, 2);
             $table->integer("numeroCuotas");
             $table->date("fecha");
             $table->date("fechaPrimerPago");

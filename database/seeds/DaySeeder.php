@@ -11,12 +11,12 @@ class DaySeeder extends Seeder
      */
     public function run()
     {
-        \App\Day::updateOrCreate(["dia" => "Lunes"]);
-        \App\Day::updateOrCreate(["dia" => "Martes"]);
-        \App\Day::updateOrCreate(["dia" => "Miercoles"]);
-        \App\Day::updateOrCreate(["dia" => "Jueves"]);
-        \App\Day::updateOrCreate(["dia" => "Viernes"]);
-        \App\Day::updateOrCreate(["dia" => "Sabado"]);
-        \App\Day::updateOrCreate(["dia" => "Domingo"]);
+        \App\Day::updateOrCreate(["dia" => "Lunes", "weekday" => 1]);
+        \App\Day::updateOrCreate(["dia" => "Martes", "weekday" => 2]);
+        \App\Day::updateOrCreate(["dia" => "Miercoles", "weekday" => 3]);
+        \App\Day::updateOrCreate(["dia" => "Jueves", "weekday" => 4]);
+        \App\Day::updateOrCreate(["dia" => "Viernes", "weekday" => 5]);
+        \App\Day::updateOrCreate(["dia" => "Sabado", "weekday" => 6]);
+        \App\Day::updateOrCreate(["dia" => "Domingo", "weekday" => 0]);
     }
 }
