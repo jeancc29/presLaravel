@@ -11,6 +11,6 @@ class CountrySeeder extends Seeder
      */
     public function run()
     {
-        $data = \App\Country::firstOrCreate(["nombre" => "Republica Dominicana"]);
+        $data = \App\Country::firstOrCreate(["name" => "Republica Dominicana"]);
     }
 }

@@ -15,23 +15,23 @@ class CreateCustomersTable extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->bigIncrements("id");
-            $table->string("foto")->nullable();
-            $table->string("nombres");
-            $table->string("apellidos");
-            $table->string("apodo")->nullable();
-            $table->date("fechaNacimiento");
-            $table->integer("numeroDependientes")->nullable();
-            $table->string("sexo");
-            $table->string("estadoCivil");
-            $table->string("tipoVivienda");
-            $table->string("tiempoEnVivienda")->nullable();
-            $table->string("referidoPor")->nullable();
-            $table->integer("estado")->default(1);
-            $table->unsignedInteger('idContacto');
-            $table->unsignedInteger('idDireccion');
-            $table->unsignedInteger('idDocumento');
-            $table->unsignedInteger('idTrabajo');
-            $table->unsignedInteger('idNegocio');
+            $table->string("photo")->nullable();
+            $table->string("names");
+            $table->string("surnames");
+            $table->string("nickname")->nullable();
+            $table->date("birthDate");
+            $table->integer("numberDependents")->nullable();
+            $table->string("gender");
+            $table->string("maritalStatus");
+            $table->string("recidenceType");
+            $table->string("timeInResidence")->nullable();
+            $table->string("referredBy")->nullable();
+            $table->integer("status")->default(1);
+            $table->unsignedInteger('idContact');
+            $table->unsignedInteger('idAddress');
+            $table->unsignedInteger('idDocument');
+            $table->unsignedInteger('idJob');
+            $table->unsignedInteger('idBusiness');
             
             $table->timestamps();
         });

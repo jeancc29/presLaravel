@@ -17,29 +17,29 @@ class CustomerController extends Controller
     public function index()
     {
         return Response::json([
-            'mensaje' => '',
-            'ciudades' => \App\City::cursor(),
-            'estados' => \App\State::cursor(),
-            'clientes' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::cursor()),
+            'message' => '',
+            'cities' => \App\City::cursor(),
+            'states' => \App\State::cursor(),
+            'customers' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::cursor()),
         ], 201);
     }
 
     public function search()
     {
         $datos = request()->validate([
-            'datos' => '',
+            'data' => '',
         ]);
         
-        $searchTerm = $datos["datos"];
-        $clientes = Customer::
-            query()->where('nombres', 'LIKE', "%{$searchTerm}%") 
-            ->orWhere('apellidos', 'LIKE', "%{$searchTerm}%")
-            ->select("id", "nombres", "apellidos", "idDocumento")
+        $searchTerm = $datos["data"];
+        $customers = Customer::
+            query()->where('names', 'LIKE', "%{$searchTerm}%") 
+            ->orWhere('surnames', 'LIKE', "%{$searchTerm}%")
+            ->select("id", "names", "surnames", "idDocument")
             ->limit(10)
             ->get();
 
         return Response::json([
-            'clientes' => \App\Http\Resources\CustomerUltraSmallResource::collection($clientes),
+            'customers' => \App\Http\Resources\CustomerUltraSmallResource::collection($customers),
         ], 201);
     }
 
@@ -63,13 +63,13 @@ class CustomerController extends Controller
     {
         $datos = request()->validate([
             'data.id' => '',
-            'data.foto' => '',
-            'data.nombres' => '',
-            'data.apellidos' => '',
-            'data.apodo' => '',
-            'data.fechaNacimiento' => '',
-            'data.numeroDependientes' => '',
-            'data.sexo' => '',
+            'data.photo' => '',
+            'data.names' => '',
+            'data.surnames' => '',
+            'data.nickname' => '',
+            'data.birthDate' => '',
+            'data.numberDependents' => '',
+            'data.gender' => '',
             'data.estadoCivil' => '',
             'data.nacionalidad' => '',
             'data.tipoVivienda' => '',

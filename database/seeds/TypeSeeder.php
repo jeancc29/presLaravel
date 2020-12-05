@@ -11,71 +11,71 @@ class TypeSeeder extends Seeder
      */
     public function run()
     {
-        \App\Type::updateOrCreate(["descripcion" => "Cedula identidad"], ["renglon" => "documento"]);
-        \App\Type::updateOrCreate(["descripcion" => "RNC"], ["renglon" => "documento"]);
-        \App\Type::updateOrCreate(["descripcion" => "Pasaporte"], ["renglon" => "documento"]);
-        \App\Type::updateOrCreate(["descripcion" => "Ninguna"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Combustible"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Gastos Diversos"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Nómina"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Comisión Agente"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Aportaciones"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Automóvil"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Renta"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Sistema"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Pagina Web"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Imprestos"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Seguro Social"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Comisiones Bancarias"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Misceláneo"], ["renglon" => "gasto"]);
-        \App\Type::updateOrCreate(["descripcion" => "Almuerzo Administrativo"], ["renglon" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Cedula identidad"], ["category" => "documento"]);
+        \App\Type::updateOrCreate(["description" => "RNC"], ["category" => "documento"]);
+        \App\Type::updateOrCreate(["description" => "Pasaporte"], ["category" => "documento"]);
+        \App\Type::updateOrCreate(["description" => "Ninguna"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Combustible"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Gastos Diversos"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Nómina"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Comisión Agente"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Aportaciones"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Automóvil"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Renta"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Sistema"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Pagina Web"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Imprestos"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Seguro Social"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Comisiones Bancarias"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Misceláneo"], ["category" => "gasto"]);
+        \App\Type::updateOrCreate(["description" => "Almuerzo Administrativo"], ["category" => "gasto"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Cuota fija"], ["renglon" => "amortizacion"]);
-        \App\Type::updateOrCreate(["descripcion" => "Disminuir cuota"], ["renglon" => "amortizacion"]);
-        \App\Type::updateOrCreate(["descripcion" => "Interes fijo"], ["renglon" => "amortizacion"]);
-        \App\Type::updateOrCreate(["descripcion" => "Capital al final"], ["renglon" => "amortizacion"]);
+        \App\Type::updateOrCreate(["description" => "Cuota fija"], ["category" => "amortizacion"]);
+        \App\Type::updateOrCreate(["description" => "Disminuir cuota"], ["category" => "amortizacion"]);
+        \App\Type::updateOrCreate(["description" => "Interes fijo"], ["category" => "amortizacion"]);
+        \App\Type::updateOrCreate(["description" => "Capital al final"], ["category" => "amortizacion"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Diario"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Semanal"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Bisemanal"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Quincenal"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "15 y fin de mes"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Mensual"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Anual"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Semestral"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Trimestral"], ["renglon" => "plazo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Ult. dia del mes"], ["renglon" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Diario"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Semanal"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Bisemanal"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Quincenal"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "15 y fin de mes"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Mensual"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Anual"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Semestral"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Trimestral"], ["category" => "plazo"]);
+        \App\Type::updateOrCreate(["description" => "Ult. dia del mes"], ["category" => "plazo"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Gastos de cierre"], ["renglon" => "gastoPrestamo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Tasacion"], ["renglon" => "gastoPrestamo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Cargos por seguro"], ["renglon" => "gastoPrestamo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Otros gastos de cierre"], ["renglon" => "gastoPrestamo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Gastos del gps"], ["renglon" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["description" => "Gastos de cierre"], ["category" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["description" => "Tasacion"], ["category" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["description" => "Cargos por seguro"], ["category" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["description" => "Otros gastos de cierre"], ["category" => "gastoPrestamo"]);
+        \App\Type::updateOrCreate(["description" => "Gastos del gps"], ["category" => "gastoPrestamo"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Efectivo"], ["renglon" => "desembolso"]);
-        \App\Type::updateOrCreate(["descripcion" => "Cheque"], ["renglon" => "desembolso"]);
-        \App\Type::updateOrCreate(["descripcion" => "Transferencia"], ["renglon" => "desembolso"]);
-        \App\Type::updateOrCreate(["descripcion" => "Efectivo en ruta"], ["renglon" => "desembolso"]);
+        \App\Type::updateOrCreate(["description" => "Efectivo"], ["category" => "desembolso"]);
+        \App\Type::updateOrCreate(["description" => "Cheque"], ["category" => "desembolso"]);
+        \App\Type::updateOrCreate(["description" => "Transferencia"], ["category" => "desembolso"]);
+        \App\Type::updateOrCreate(["description" => "Efectivo en ruta"], ["category" => "desembolso"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Vehiculo"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Infraestructura"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Joyeria"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Electrodomestico"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Inmueble"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Telefono"], ["renglon" => "garantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Vehiculo"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Infraestructura"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Joyeria"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Electrodomestico"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Inmueble"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Telefono"], ["category" => "garantia"]);
+        \App\Type::updateOrCreate(["description" => "Otros"], ["category" => "garantia"]);
 
-        \App\Type::updateOrCreate(["descripcion" => "Nuevo"], ["renglon" => "condicionGarantia"]);
-        \App\Type::updateOrCreate(["descripcion" => "Usado"], ["renglon" => "condicionGarantia"]);
+        \App\Type::updateOrCreate(["description" => "Nuevo"], ["category" => "condicionGarantia"]);
+        \App\Type::updateOrCreate(["description" => "Usado"], ["category" => "condicionGarantia"]);
         
-        \App\Type::updateOrCreate(["descripcion" => "Sedan"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Compacto"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Jeepeta"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Camioneta"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Coupe/Sport"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Camion"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Motor"], ["renglon" => "tipoVehiculo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Sedan"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Compacto"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Jeepeta"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Camioneta"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Coupe/Sport"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Camion"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Motor"], ["category" => "tipoVehiculo"]);
+        \App\Type::updateOrCreate(["description" => "Otros"], ["category" => "tipoVehiculo"]);
 
     }
 }

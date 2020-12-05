@@ -15,9 +15,9 @@ class CreateCitiesTable extends Migration
     {
         Schema::create('cities', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("nombre");
-            $table->unsignedInteger('idEstado');
-            $table->foreign('idEstado')->references('id')->on('states');
+            $table->string("name");
+            $table->unsignedInteger('idState');
+            $table->foreign('idState')->references('id')->on('states');
             $table->timestamps();
         });
     }
@@ -29,7 +29,7 @@ class CreateCitiesTable extends Migration
      */
     public function down()
     {
-        $table->dropForeign(['idEstado']);
+        $table->dropForeign(['idState']);
         Schema::dropIfExists('cities');
     }
 }

@@ -15,10 +15,10 @@ class CreateDocumentsTable extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("descripcion");
-            $table->unsignedInteger("idTipo");
+            $table->string("description");
+            $table->unsignedInteger("idType");
 
-            $table->foreign("idTipo")->references("id")->on("types");
+            $table->foreign("idType")->references("id")->on("types");
             $table->timestamps();
         });
     }
@@ -30,7 +30,7 @@ class CreateDocumentsTable extends Migration
      */
     public function down()
     {
-        $table->dropForeign(["idTipo"]);
+        $table->dropForeign(["idType"]);
         Schema::dropIfExists('documents');
     }
 }

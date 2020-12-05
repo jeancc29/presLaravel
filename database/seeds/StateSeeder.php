@@ -12,7 +12,7 @@ class StateSeeder extends Seeder
     public function run()
     {
         $ID_COUNTRY_REPUBLICA_DOMINICANA = 138;
-        $pais = \App\Country::whereNombre("Republica Dominicana")->first();
+        $country = \App\Country::whereName("Republica Dominicana")->first();
 
         // $states = $this->getStatesJsonFile();
         $states = json_decode(\App\Classes\JsonCountries::getStates());
@@ -21,12 +21,12 @@ class StateSeeder extends Seeder
                 $name = $state->name;
                 $id = $state->id;
 
-                $estado = \App\State::updateOrCreate([
-                    "nombre" => $state->name,
-                    "idPais" => $pais->id
+                $mystate = \App\State::updateOrCreate([
+                    "name" => $state->name,
+                    "idCountry" => $country->id
                 ]);
 
-                $this->insertCities($state->id, $estado->id);
+                $this->insertCities($state->id, $mystate->id);
             }
             
         }
@@ -42,8 +42,8 @@ class StateSeeder extends Seeder
                 $id = $city->id;
 
                 \App\City::updateOrCreate([
-                    "nombre" => $city->name,
-                    "idEstado" => $idStateDB
+                    "name" => $city->name,
+                    "idState" => $idStateDB
                 ]);
             }
         }
@@ -57,15 +57,15 @@ class StateSeeder extends Seeder
             $path .= "/assets/countriesjson/states.json";
 
         $file = file_get_contents($path, true);
-        $file = $this->quitarSaltoDeLinea($file);
-        $file = $this->quitarTabulacion($file);
+        $file = $this->removeLineBreak($file);
+        $file = $this->removeTab($file);
         return json_decode($file);
     }
 
-    public function quitarSaltoDeLinea($string){
+    public function removeLineBreak($string){
         return str_replace("\n", "", $string);
     }
-    public function quitarTabulacion($string){
+    public function removeTab($string){
         return str_replace("\t", "", $string);
     }
     public function quitarPrimeraComilla($string){
