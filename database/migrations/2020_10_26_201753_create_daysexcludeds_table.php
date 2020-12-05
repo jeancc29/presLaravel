@@ -15,10 +15,10 @@ class CreateDaysexcludedsTable extends Migration
     {
         Schema::create('daysexcludeds', function (Blueprint $table) {
             $table->increments("id");
-            $table->unsignedBigInteger("idPrestamo");
-            $table->unsignedInteger("idDia");
-            $table->foreign("idPrestamo")->references("id")->on("loans");
-            $table->foreign("idDia")->references("id")->on("days");
+            $table->unsignedBigInteger("idLoan");
+            $table->unsignedInteger("idDay");
+            $table->foreign("idLoan")->references("id")->on("loans");
+            $table->foreign("idDay")->references("id")->on("days");
             $table->timestamps();
         });
     }
@@ -30,8 +30,8 @@ class CreateDaysexcludedsTable extends Migration
      */
     public function down()
     {
-        $table->dropForeign(["idPrestamo"]);
-        $table->dropForeign(["idDia"]);
+        $table->dropForeign(["idLoan"]);
+        $table->dropForeign(["idDay"]);
         Schema::dropIfExists('daysexcludeds');
     }
 }

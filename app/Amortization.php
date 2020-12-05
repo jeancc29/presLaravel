@@ -8,14 +8,14 @@ class Amortization extends Model
 {
     protected $fillable = [
         "id", 
-        "idTipo", 
-        "idPrestamo", 
-        "cuota", 
-        "interes", 
+        "idType", 
+        "idLoan", 
+        "quota", 
+        "interest", 
         "capital",
-        "capitalRestante",
-        "capitalSaldado",
-        "interesSaldado",
-        "fecha",
+        "remainingCapital",
+        "paidCapital",
+        "paidInterest",
+        "date",
     ];
 }

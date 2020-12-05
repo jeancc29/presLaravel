@@ -17,14 +17,14 @@ class ExpenseResource extends JsonResource
         // return parent::toArray($request);
         return [
             "id" => $this->id,
-            "concepto" => $this->concepto,
-            "monto" => $this->monto,
-            "fecha" => $this->fecha,
-            "comentario" => $this->comentario,
-            "idCaja" => $this->idCaja,
-            "caja" => $this->caja,
-            "idTipo" => $this->idTipo,
-            "tipo" => $this->tipo,
+            "concept" => $this->concept,
+            "amount" => $this->amount,
+            "date" => $this->date,
+            "commentary" => $this->commentary,
+            "idBox" => $this->idBox,
+            "box" => $this->box,
+            "idType" => $this->idType,
+            "type" => $this->type,
         ];
     }
 }

@@ -15,13 +15,13 @@ class CreateDisbursementsTable extends Migration
     {
         Schema::create('disbursements', function (Blueprint $table) {
             $table->increments("id");
-            $table->integer("idTipo");
-            $table->integer("idBanco")->nullable();
-            $table->string("numeroCheque")->nullable();
-            $table->integer("idBancoDestino")->nullable();
-            $table->integer("idCuentaDestino")->nullable();
-            $table->double("montoBruto", 20, 2);
-            $table->double("montoNeto", 20, 2);
+            $table->integer("idType");
+            $table->integer("idBank")->nullable();
+            $table->string("checkNumber")->nullable();
+            $table->integer("idBankDestination")->nullable();
+            $table->integer("idAccountDestination")->nullable();
+            $table->double("grossAmount", 20, 2);
+            $table->double("netAmount", 20, 2);
             $table->timestamps();
         });
     }

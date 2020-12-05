@@ -15,18 +15,18 @@ class CreateJobsTable extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("nombre");
-            $table->string("ocupacion");
-            $table->decimal("ingresos", 20, 2);
-            $table->decimal("otrosIngresos", 20, 2);
-            $table->date("fechaIngreso");
-            $table->unsignedInteger("idDireccion");
+            $table->string("name");
+            $table->string("occupation");
+            $table->decimal("income", 20, 2);
+            $table->decimal("otherIncome", 20, 2);
+            $table->date("admissionDate");
+            $table->unsignedInteger("idAddress");
             // $table->unsignedInteger("idCliente");
-            $table->unsignedInteger("idContacto");
+            $table->unsignedInteger("idContact");
 
-            $table->foreign("idDireccion")->references("id")->on("addresses");
+            $table->foreign("idAddress")->references("id")->on("addresses");
             // $table->foreign("idCliente")->references("id")->on("customers");
-            $table->foreign("idContacto")->references("id")->on("contacts");
+            $table->foreign("idContact")->references("id")->on("contacts");
             $table->timestamps();
         });
     }
@@ -38,7 +38,7 @@ class CreateJobsTable extends Migration
      */
     public function down()
     {
-        $table->dropForeign(['idCliente', 'idDireccion', 'idContacto']);
+        $table->dropForeign(['idCustomer', 'idAddress', 'idContact']);
         Schema::dropIfExists('jobs');
     }
 }

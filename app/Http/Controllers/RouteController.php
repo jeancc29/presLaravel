@@ -16,8 +16,8 @@ class RouteController extends Controller
     public function index()
     {
         return Response::json([
-            'mensaje' => '',
-            'rutas' => \App\Route::cursor(),
+            'message' => '',
+            'routes' => \App\Route::cursor(),
         ], 201);
     }
 
@@ -39,20 +39,20 @@ class RouteController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.descripcion' => 'required',
+            'data.description' => 'required',
         ])["data"];
 
-        $ruta = Route::updateOrCreate(
-            ["id" => $datos["id"]],
+        $route = Route::updateOrCreate(
+            ["id" => $data["id"]],
             [
-                "descripcion" => $datos["descripcion"],
+                "description" => $data["description"],
             ]
         );
         return Response::json([
-            "ruta" => $ruta,
-            "mensaje" => "Se ha guardado correctamente",
+            "route" => $route,
+            "message" => "Se ha guardado correctamente",
         ]);
     }
 
@@ -98,25 +98,25 @@ class RouteController extends Controller
      */
     public function destroy(Route $route)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.descripcion' => '',
+            'data.description' => '',
         ])["data"];
 
         try {
-            $ruta = Route::whereId($datos['id'])->first();
-            if($ruta != null)
+            $route = Route::whereId($data['id'])->first();
+            if($route != null)
             {
-                $ruta->delete();
+                $route->delete();
                 return Response::json([
-                    "mensaje" => "Se ha eliminado correctamente",
-                    "ruta" => $ruta
+                    "message" => "Se ha eliminado correctamente",
+                    "route" => $route
                 ]);
             }else{
                 return Response::json([
-                    "mensaje" => "Ruta no existe",
-                    "errores" => 1,
-                    "ruta" => $datos
+                    "message" => "route no existe",
+                    "error" => 1,
+                    "route" => $data
                 ]);
             }
         } catch (\Throwable $th) {

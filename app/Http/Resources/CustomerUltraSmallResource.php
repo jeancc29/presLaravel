@@ -15,10 +15,10 @@ class CustomerUltraSmallResource extends JsonResource
     public function toArray($request)
     {
         return [
-            "nombres" => $this->nombres,
-            "apellidos" => $this->apellidos,
-            "documento" => $this->documento,
-            "contacto" => $this->contacto,
+            "names" => $this->names,
+            "surnames" => $this->surnames,
+            "document" => $this->document,
+            "contact" => $this->contact,
         ];
         // return parent::toArray($request);
     }

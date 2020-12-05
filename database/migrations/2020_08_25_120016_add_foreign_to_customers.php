@@ -28,7 +28,7 @@ class AddForeignToCustomers extends Migration
     public function down()
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->dropForeign(['idDocumento', 'idDireccion', 'idContacto']);
+            $table->dropForeign(['idDocument', 'idAddress', 'idContact']);
         });
     }
 }

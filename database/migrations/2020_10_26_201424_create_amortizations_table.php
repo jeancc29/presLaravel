@@ -15,15 +15,15 @@ class CreateAmortizationsTable extends Migration
     {
         Schema::create('amortizations', function (Blueprint $table) {
             $table->increments("id");
-            $table->unsignedBigInteger("idPrestamo");
-            $table->unsignedInteger("idTipo");
-            $table->double("cuota", 20, 2);
-            $table->double("interes", 20, 2);
+            $table->unsignedBigInteger("idLoan");
+            $table->unsignedInteger("idType");
+            $table->double("quota", 20, 2);
+            $table->double("interest", 20, 2);
             $table->double("capital", 20, 2);
-            $table->double("capitalRestante", 20, 2);
-            $table->double("capitalSaldado", 20, 2);
-            $table->double("interesSaldado", 20, 2);
-            $table->date("fecha", 20, 2);
+            $table->double("remainingCapital", 20, 2);
+            $table->double("paidCapital", 20, 2);
+            $table->double("paidInterest", 20, 2);
+            $table->date("date", 20, 2);
             $table->timestamps();
         });
     }

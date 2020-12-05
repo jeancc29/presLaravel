@@ -12,8 +12,8 @@ class BoxSeeder extends Seeder
     public function run()
     {
         \App\Box::updateOrCreate(
-            ["descripcion" => "Ninguna"],
-            ["descripcion" => "Ninguna", "balanceInicial" => 0],
+            ["description" => "Ninguna"],
+            ["description" => "Ninguna", "balanceInicial" => 0],
         );
     }
 }

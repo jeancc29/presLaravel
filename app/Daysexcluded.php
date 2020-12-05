@@ -8,7 +8,7 @@ class Daysexcluded extends Model
 {
     protected $fillable = [
         "id", 
-        "idPrestamo", 
-        "idDia", 
+        "idLoan", 
+        "idDay", 
     ];
 }

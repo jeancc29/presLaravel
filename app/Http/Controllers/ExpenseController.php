@@ -16,10 +16,10 @@ class ExpenseController extends Controller
     public function index()
     {
         return Response::json([
-            'mensaje' => '',
-            'tipos' => \App\Type::whereRenglon("gasto")->cursor(),
-            'cajas' => \App\Box::cursor(),
-            'gastos' => \App\Http\Resources\ExpenseResource::collection(Expense::cursor()),
+            'message' => '',
+            'types' => \App\Type::whereCategory("gasto")->cursor(),
+            'boxes' => \App\Box::cursor(),
+            'expenses' => \App\Http\Resources\ExpenseResource::collection(Expense::cursor()),
         ], 201);
     }
 
@@ -41,35 +41,35 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.fecha' => '',
-            'data.concepto' => '',
-            'data.monto' => '',
-            'data.comentario' => '',
-            'data.idCaja' => '',
-            'data.idTipo' => '',
-            'data.idUsuario' => '',
+            'data.date' => '',
+            'data.concept' => '',
+            'data.amount' => '',
+            'data.commentary' => '',
+            'data.idBox' => '',
+            'data.idType' => '',
+            'data.idUser' => '',
         ])["data"];
 
 
-        $gasto = Expense::updateOrCreate(
-            ["id" => $datos["id"]],
+        $expense = Expense::updateOrCreate(
+            ["id" => $data["id"]],
             [
-                "id" => $datos["id"],
-                "fecha" => $datos["fecha"],
-                "concepto" => $datos["concepto"],
-                "monto" => $datos["monto"],
-                "comentario" => $datos["comentario"],
-                "idCaja" => $datos["idCaja"],
-                "idTipo" => $datos["idTipo"],
-                "idUsuario" => $datos["idUsuario"],
+                "id" => $data["id"],
+                "date" => $data["date"],
+                "concept" => $data["concept"],
+                "amount" => $data["amount"],
+                "commentary" => $data["commentary"],
+                "idBox" => $data["idBox"],
+                "idType" => $data["idType"],
+                "idUser" => $data["idUser"],
             ]
         );
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
-            "data" => new \App\Http\Resources\ExpenseResource($gasto)
+            "message" => "Se ha guardado correctamente",
+            "data" => new \App\Http\Resources\ExpenseResource($expense)
         ]);
     }
 
@@ -115,25 +115,25 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.fecha' => '',
-            'data.concepto' => '',
-            'data.monto' => '',
-            'data.comentario' => '',
-            'data.idCaja' => '',
-            'data.idTipo' => '',
-            'data.idUsuario' => '',
+            'data.date' => '',
+            'data.concept' => '',
+            'data.amount' => '',
+            'data.commentary' => '',
+            'data.idBox' => '',
+            'data.idType' => '',
+            'data.idUser' => '',
         ])["data"];
 
-        $gasto = Expense::whereId($datos["id"])->first();
-        if($gasto != null){
-            $gasto->delete();
+        $expense = Expense::whereId($data["id"])->first();
+        if($expense != null){
+            $expense->delete();
         }
 
         return Response::json([
-            "mensaje" => "Se ha eliminado correctamente",
-            "gasto" => $gasto
+            "message" => "Se ha eliminado correctamente",
+            "expense" => $expense
         ]);
     }
 }

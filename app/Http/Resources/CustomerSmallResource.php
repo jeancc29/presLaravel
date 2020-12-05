@@ -16,12 +16,12 @@ class CustomerSmallResource extends JsonResource
     {
         // return parent::toArray($request);
         return [
-            "foto" => (isset($this->foto)) ? base64_encode(file_get_contents(\App\Classes\Helper::path() . $this->foto, true)) : null,
-            "nombres" => $this->nombres,
-            "apellidos" => $this->apellidos,
-            "documento" => $this->documento,
-            "contacto" => $this->contacto,
-            "trabajo" => $this->trabajo,
+            "photo" => (isset($this->photo)) ? base64_encode(file_get_contents(\App\Classes\Helper::path() . $this->photo, true)) : null,
+            "names" => $this->names,
+            "surnames" => $this->surnames,
+            "document" => $this->document,
+            "contact" => $this->contact,
+            "job" => $this->job,
         ];
     }
 }

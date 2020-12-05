@@ -15,8 +15,8 @@ class CreateSettingsTable extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->increments("id");
-            $table->boolean("gastos")->default(0);
-            $table->boolean("garantia")->default(0);
+            $table->boolean("expense")->default(0);
+            $table->boolean("guarantee")->default(0);
             $table->timestamps();
         });
     }

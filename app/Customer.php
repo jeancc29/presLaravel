@@ -7,28 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     protected $fillable = [
-        "id", "foto", "nombres", "apellidos", "apodo",
-        "fechaNacimiento", "numeroDependientes",
-        "sexo", "estadoCivil", "estado", "idContacto",
-        "idDireccion", "idDocumento", "tipoVivienda", "tiempoEnVivienda", "referidoPor",
-        "idTrabajo", "idNegocio"
+        "id", "photo", "names", "surnames", "nickname",
+        "birthDate", "numberDependents",
+        "gender", "maritalStatus", "status", "idContact",
+        "idAddress", "idDocument", "residenceType", "timeInResidence", "referredBy",
+        "idJob", "idBusiness", "nationality"
     ];
 
-    public function documento()
+    public function document()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Document', 'id', 'idDocumento');
+        return $this->hasOne('App\Document', 'id', 'idDocument');
     }
 
-    public function contacto()
+    public function contact()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Contact', 'id', 'idContacto');
+        return $this->hasOne('App\Contact', 'id', 'idContact');
     }
 
-    public function trabajo()
+    public function job()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Job', 'id', 'idTrabajo');
+        return $this->hasOne('App\Job', 'id', 'idJob');
     }
 }

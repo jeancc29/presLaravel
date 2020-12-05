@@ -15,11 +15,11 @@ class CreateReferencesTable extends Migration
     {
         Schema::create('references', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("nombre");
-            $table->string("tipo");
-            $table->string("parentesco");
-            $table->unsignedBigInteger("idCliente");
-            $table->foreign("idCliente")->references("id")->on("customers");
+            $table->string("name");
+            $table->string("type");
+            $table->string("relationship");
+            $table->unsignedBigInteger("idCustomer");
+            $table->foreign("idCustomer")->references("id")->on("customers");
             $table->timestamps();
         });
     }

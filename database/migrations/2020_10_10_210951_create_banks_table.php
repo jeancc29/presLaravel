@@ -15,8 +15,8 @@ class CreateBanksTable extends Migration
     {
         Schema::create('banks', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("descripcion");
-            $table->integer("estado")->default(1);
+            $table->string("description");
+            $table->integer("status")->default(1);
             $table->timestamps();
             $table->softDeletes();
         });

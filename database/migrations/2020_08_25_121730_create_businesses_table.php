@@ -15,14 +15,14 @@ class CreateBusinessesTable extends Migration
     {
         Schema::create('businesses', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("nombre")->nullable();
-            $table->string("tipo")->nullable();
-            $table->string("tiempoExistencia")->nullable();
-            $table->unsignedInteger("idDireccion");
+            $table->string("name")->nullable();
+            $table->string("type")->nullable();
+            $table->string("timeInResidence")->nullable();
+            $table->unsignedInteger("idAddress");
             // $table->unsignedInteger("idContacto");
             // $table->unsignedInteger("idCliente");
 
-            $table->foreign("idDireccion")->references("id")->on("addresses");
+            $table->foreign("idAddress")->references("id")->on("addresses");
             // $table->foreign("idCliente")->references("id")->on("customers");
             // $table->foreign("idContacto")->references("id")->on("contacts");
             $table->timestamps();
@@ -36,7 +36,7 @@ class CreateBusinessesTable extends Migration
      */
     public function down()
     {
-        $table->dropForeign(['idCliente', 'idDireccion', 'idContacto']);
+        $table->dropForeign(['idCustomer', 'idAddress', 'idContact']);
         Schema::dropIfExists('businesses');
     }
 }

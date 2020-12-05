@@ -9,25 +9,25 @@ class Expense extends Model
 {
     use SoftDeletes;   
     protected $fillable = [
-        'fecha', 
-        'concepto', 
-        'monto', 
-        'comentario', 
-        'idCaja', 
-        'idTipo', 
-        'idUsuario', 
+        'date', 
+        'concept', 
+        'amount', 
+        'commentary', 
+        'idBox', 
+        'idType', 
+        'idUser', 
     ];
 
-    public function tipo()
+    public function type()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Type', 'id', 'idTipo');
+        return $this->hasOne('App\Type', 'id', 'idType');
     }
 
-    public function caja()
+    public function box()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Box', 'id', 'idCaja');
+        return $this->hasOne('App\Box', 'id', 'idBox');
     }
 
 }

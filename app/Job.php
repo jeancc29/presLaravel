@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Job extends Model
 {
     protected $fillable = [
-        "id", "nombre", 
-        "ocupacion", "ingresos", "otrosIngresos",
-        "fechaIngreso", "idDireccion", "idCliente",
-        "idContacto"
+        "id", "name", 
+        "occupation", "income", "otherIncome",
+        "admissionDate", "idAddress", "idCustomer",
+        "idContact"
     ];
 }

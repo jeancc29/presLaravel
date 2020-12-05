@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model
 {
     protected $fillable = [
-        "id", "descripcion", "idBanco"
+        "id", "description", "idBank"
     ];
 
     public function banco()
     {
         //Modelo, foreign key, local key
-        return $this->hasOne('App\Bank', 'id', 'idBanco');
+        return $this->hasOne('App\Bank', 'id', 'idBank');
     }
 }

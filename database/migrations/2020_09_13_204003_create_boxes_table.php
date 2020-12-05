@@ -15,12 +15,12 @@ class CreateBoxesTable extends Migration
     {
         Schema::create('boxes', function (Blueprint $table) {
             $table->bigIncrements("id");
-            $table->string("descripcion");
-            $table->double("balanceInicial")->default(0);
-            $table->boolean("validarDesgloseEfectivo")->default(0);
-            $table->boolean("validarDesgloseCheques")->default(0);
-            $table->boolean("validarDesgloseTarjetas")->default(0);
-            $table->boolean("validarDesgloseTransferencias")->default(0);
+            $table->string("description");
+            $table->double("initialBalance")->default(0);
+            $table->boolean("validateCashBreakdown")->default(0);
+            $table->boolean("validateCheckBreakdown")->default(0);
+            $table->boolean("validateCreditCardBreakdown")->default(0);
+            $table->boolean("validateTransferBreakdown")->default(0);
             
             $table->timestamps();
         });

@@ -8,8 +8,8 @@ class Loanexpense extends Model
 {
     protected $fillable = [
         "id", 
-        "idTipo", 
-        "porcentaje", 
-        "importe", 
+        "idType", 
+        "percent", 
+        "amount", 
     ];
 }

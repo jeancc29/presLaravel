@@ -17,8 +17,8 @@ class BankController extends Controller
     public function index()
     {
         return Response::json([
-            "mensaje" => "",
-            "bancos" => Bank::take(20)->get(),
+            "message" => "",
+            "banks" => Bank::take(20)->get(),
         ], 201);
     }
 
@@ -42,22 +42,22 @@ class BankController extends Controller
     {
         $data = request()->validate([
             "data.id" => "",
-            "data.descripcion" => "",
-            "data.estado" => "",
+            "data.description" => "",
+            "data.status" => "",
         ])["data"];
 
 
-        $banco = Bank::updateOrCreate(
+        $bank = Bank::updateOrCreate(
             ["id" => $data["id"]],
             [
-                "descripcion" => $data["descripcion"],
-                "estado" => $data["estado"],
+                "description" => $data["description"],
+                "status" => $data["status"],
             ]
         );
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
-            "banco" => $banco
+            "message" => "Se ha guardado correctamente",
+            "bank" => $bank
         ]);
     }
 
@@ -105,19 +105,19 @@ class BankController extends Controller
     {
         $data = request()->validate([
             "data.id" => "required",
-            "data.descripcion" => "",
+            "data.description" => "",
         ])["data"];
 
-        $banco = Bank::whereId($data["id"])->first();
-        if($banco != null){
-            $banco->delete();
+        $bank = Bank::whereId($data["id"])->first();
+        if($bank != null){
+            $bank->delete();
 
             return Response::json([
-                "mensaje" => "El banco se ha eliminado correctamente",
-                "banco" => $banco
+                "message" => "El banco se ha eliminado correctamente",
+                "bank" => $bank
             ]);
         }else{
-            \abort(402, "La caja no existe");
+            \abort(402, "La banco no existe");
         }
     }
 }

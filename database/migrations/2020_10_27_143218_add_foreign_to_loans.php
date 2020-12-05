@@ -14,7 +14,7 @@ class AddForeignToLoans extends Migration
     public function up()
     {
         Schema::table('loans', function (Blueprint $table) {
-            $table->foreign('idGasto')->references('id')->on('loanexpenses');
+            $table->foreign('idExpense')->references('id')->on('loanexpenses');
         });
     }
 
@@ -26,7 +26,7 @@ class AddForeignToLoans extends Migration
     public function down()
     {
         Schema::table('loans', function (Blueprint $table) {
-            $table->dropForeign(['idGasto']);
+            $table->dropForeign(['idExpense']);
         });
     }
 }

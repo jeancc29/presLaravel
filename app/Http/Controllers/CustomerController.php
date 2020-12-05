@@ -26,11 +26,11 @@ class CustomerController extends Controller
 
     public function search()
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data' => '',
         ]);
         
-        $searchTerm = $datos["data"];
+        $searchTerm = $data["data"];
         $customers = Customer::
             query()->where('names', 'LIKE', "%{$searchTerm}%") 
             ->orWhere('surnames', 'LIKE', "%{$searchTerm}%")
@@ -61,7 +61,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
             'data.photo' => '',
             'data.names' => '',
@@ -70,20 +70,21 @@ class CustomerController extends Controller
             'data.birthDate' => '',
             'data.numberDependents' => '',
             'data.gender' => '',
-            'data.estadoCivil' => '',
-            'data.nacionalidad' => '',
-            'data.tipoVivienda' => '',
-            'data.tiempoEnVivienda' => '',
-            'data.referidoPor' => '',
-            'data.idDocumento' => '',
-            'data.documento' => '',
-            'data.idDireccion' => '',
-            'data.direccion' => '',
-            'data.idContacto' => '',
-            'data.contacto' => '',
-            'data.trabajo' => '',
-            'data.negocio' => '',
-            'data.referencias' => '',
+            'data.maritalStatus' => '',
+            'data.nationality' => '',
+            'data.residenceType' => '',
+            'data.timeInResidence' => '',
+            'data.referredBy' => '',
+            'data.status' => '',
+            'data.idDocument' => '',
+            'data.document' => '',
+            'data.idAddress' => '',
+            'data.address' => '',
+            'data.idContact' => '',
+            'data.contact' => '',
+            'data.job' => '',
+            'data.business' => '',
+            'data.references' => '',
             // 'abreviatura' => 'required|min:1|max:10',
             // 'estado' => 'required',
             // 'horaCierre' => 'required',
@@ -91,273 +92,273 @@ class CustomerController extends Controller
             // 'loterias' => '',
     
         ])["data"];
-        // $datos["foto"] = substr($datos["foto"], strpos($datos["foto"], ",")+1);
+        // $data["photo"] = substr($data["photo"], strpos($data["photo"], ",")+1);
 
         // return Response::json([
-        //     'mensaje' => 'Se ha guardado',
+        //     'message' => 'Se ha guardado',
         //     'clientes' => "hey culooooooooooooooooooooooooooooooooooooooo"
         // ], 201);
 
-        \DB::transaction(function() use($datos)
+        \DB::transaction(function() use($data)
         {
-            $p = $datos["nombres"];
-            $customer = Customer::whereId($datos["id"])->first();
+            $p = $data["names"];
+            $customer = Customer::whereId($data["id"])->first();
             // return Response::json([
-            //     "errores" => 0,
-            //     'mensaje' => 'Se ha guardado el culooooooooooooo',
+            //     "error" => 0,
+            //     'message' => 'Se ha guardado el culooooooooooooo',
             //     'clientes' => Customer::orderBy("id", "desc")->get() 
             // ], 201);
             if($customer != null){
-                $documento = \App\Document::updateOrCreate(
-                    ["id" => $datos["documento"]["id"]],
+                $document = \App\Document::updateOrCreate(
+                    ["id" => $data["document"]["id"]],
                     [
-                        "descripcion" => $datos["documento"]["descripcion"],
-                        "idTipo" => $datos["documento"]["idTipo"],
+                        "description" => $data["document"]["description"],
+                        "idType" => $data["document"]["idType"],
                     ]
                 );
 
-                $direccion = \App\Address::updateOrCreate(
-                    ["id" => $datos["direccion"]["id"]],
+                $address = \App\Address::updateOrCreate(
+                    ["id" => $data["address"]["id"]],
                     [
-                        "direccion" => $datos["direccion"]["direccion"],
-                        "sector" => $datos["direccion"]["sector"],
-                        "idEstado" => $datos["direccion"]["idEstado"],
-                        "idCiudad" => $datos["direccion"]["idCiudad"],
+                        "address" => $data["address"]["address"],
+                        "sector" => $data["address"]["sector"],
+                        "idState" => $data["address"]["idState"],
+                        "idCity" => $data["address"]["idCity"],
                     ]
                 );
 
-                $contacto = \App\Contact::updateOrCreate(
-                    ["id" => $datos["contacto"]["id"]],
+                $contact = \App\Contact::updateOrCreate(
+                    ["id" => $data["contact"]["id"]],
                     [
-                        "telefono" => $datos["contacto"]["telefono"],
-                        "celular" => $datos["contacto"]["celular"],
-                        "correo" => $datos["contacto"]["correo"],
-                        "facebook" => $datos["contacto"]["facebook"],
-                        "instagram" => $datos["contacto"]["instagram"],
+                        "phone" => $data["contact"]["phone"],
+                        "mobile" => $data["contact"]["mobile"],
+                        "email" => $data["contact"]["email"],
+                        "facebook" => $data["contact"]["facebook"],
+                        "instagram" => $data["contact"]["instagram"],
                     ],
                 );
 
-                //Trabajo
-                $direccionTrabajo = \App\Address::updateOrCreate(
-                    ["id" => $datos["trabajo"]["direccion"]["id"]],
+                //job
+                $addressjob = \App\Address::updateOrCreate(
+                    ["id" => $data["job"]["address"]["id"]],
                     [
-                        "direccion" => $datos["trabajo"]["direccion"]["direccion"],
-                        "sector" => $datos["trabajo"]["direccion"]["sector"],
-                        "idEstado" => $datos["trabajo"]["direccion"]["idEstado"],
-                        "idCiudad" => $datos["trabajo"]["direccion"]["idCiudad"],
-                        "numero" => $datos["trabajo"]["direccion"]["numero"],
+                        "address" => $data["job"]["address"]["address"],
+                        "sector" => $data["job"]["address"]["sector"],
+                        "idState" => $data["job"]["address"]["idState"],
+                        "idCity" => $data["job"]["address"]["idCity"],
+                        "number" => $data["job"]["address"]["number"],
                     ]
                 );
 
-                $contactoTrabajo = \App\Contact::updateOrCreate(
-                    ["id" => $datos["trabajo"]["contacto"]["id"]],
+                $contactjob = \App\Contact::updateOrCreate(
+                    ["id" => $data["job"]["contact"]["id"]],
                     [
-                        "telefono" => $datos["trabajo"]["contacto"]["telefono"],
-                        "extension" => $datos["trabajo"]["contacto"]["extension"],
-                        "celular" => $datos["trabajo"]["contacto"]["celular"],
-                        "correo" => $datos["trabajo"]["contacto"]["correo"],
-                        "facebook" => $datos["trabajo"]["contacto"]["facebook"],
-                        "instagram" => $datos["trabajo"]["contacto"]["instagram"],
-                        "fax" => $datos["trabajo"]["contacto"]["fax"],
+                        "phone" => $data["job"]["contact"]["phone"],
+                        "extension" => $data["job"]["contact"]["extension"],
+                        "mobile" => $data["job"]["contact"]["mobile"],
+                        "email" => $data["job"]["contact"]["email"],
+                        "facebook" => $data["job"]["contact"]["facebook"],
+                        "instagram" => $data["job"]["contact"]["instagram"],
+                        "fax" => $data["job"]["contact"]["fax"],
                     ],
                 );
 
-                $trabajo = \App\Job::updateOrCreate(
-                    ["id" => $datos["trabajo"]["id"]],
+                $job = \App\Job::updateOrCreate(
+                    ["id" => $data["job"]["id"]],
                     [
-                        "nombre" => $datos["trabajo"]["nombre"],
-                        "ocupacion" => $datos["trabajo"]["ocupacion"],
-                        "ingresos" => $datos["trabajo"]["ingresos"],
-                        "otrosIngresos" => $datos["trabajo"]["otrosIngresos"],
-                        "fechaIngreso" => $datos["trabajo"]["fechaIngreso"],
-                        "idDireccion" => $direccionTrabajo->id,
-                        "idContacto" => $contactoTrabajo->id,
+                        "name" => $data["job"]["name"],
+                        "occupation" => $data["job"]["occupation"],
+                        "income" => $data["job"]["income"],
+                        "otherIncome" => $data["job"]["otherIncome"],
+                        "admissionDate" => $data["job"]["admissionDate"],
+                        "idAddress" => $addressjob->id,
+                        "idContact" => $contactjob->id,
                     ],
                 );
 
-                //Negocio
-                $direccionNegocio = \App\Address::updateOrCreate(
-                    ["id" => $datos["negocio"]["direccion"]["id"]],
+                //business
+                $addressbusiness = \App\Address::updateOrCreate(
+                    ["id" => $data["business"]["address"]["id"]],
                     [
-                        "direccion" => $datos["negocio"]["direccion"]["direccion"],
-                        "idEstado" => $datos["negocio"]["direccion"]["idEstado"],
-                        "idCiudad" => $datos["negocio"]["direccion"]["idCiudad"],
+                        "address" => $data["business"]["address"]["address"],
+                        "idState" => $data["business"]["address"]["idState"],
+                        "idCity" => $data["business"]["address"]["idCity"],
                     ]
                 );
 
-                $negocio = \App\Business::updateOrCreate(
-                    ["id" => $datos["negocio"]["id"]],
+                $business = \App\Business::updateOrCreate(
+                    ["id" => $data["business"]["id"]],
                     [
-                        "nombre" => $datos["negocio"]["nombre"],
-                        "tipo" => $datos["negocio"]["tipo"],
-                        "tiempoExistencia" => $datos["negocio"]["tiempoExistencia"],
-                        "idDireccion" => $direccionNegocio->id,
+                        "name" => $data["business"]["name"],
+                        "type" => $data["business"]["type"],
+                        "existenceTime" => $data["business"]["existenceTime"],
+                        "idAddress" => $addressbusiness->id,
                     ],
                 );
 
-                foreach($datos["referencias"] as $referencia){
+                foreach($data["references"] as $referencia){
                     \App\Reference::updateOrCreate(
-                        ["id" => $referencia["id"], "idCliente" => $customer->id],
-                        ["nombre" => $referencia["nombre"], "tipo" => $referencia["tipo"], "parentesco" => $referencia["parentesca"]]
+                        ["id" => $referencia["id"], "idCustomer" => $customer->id],
+                        ["name" => $referencia["name"], "type" => $referencia["type"], "relationship" => $referencia["relationship"]]
                     );
                 }
 
                 //Cliente
-                $customer->foto = $datos["foto"];
-                $customer->nombres = $datos["nombres"];
-                $customer->apellidos = $datos["apellidos"];
-                $customer->apodo = $datos["apodo"];
-                $customer->fechaNacimiento = $datos["fechaNacimiento"];
-                $customer->numeroDependientes = $datos["numeroDependientes"];
-                $customer->sexo = $datos["sexo"];
-                $customer->estadoCivil = $datos["estadoCivil"];
-                $customer->nacionalidad = $datos["nacionalidad"];
-                $customer->tipoVivienda = $datos["tipoVivienda"];
-                $customer->tiempoEnVivienda = $datos["tiempoEnVivienda"];
-                $customer->referidoPor = $datos["referidoPor"];
-                $customer->idDocumento = $documento->id;
-                $customer->idDireccion = $direccion->id;
-                $customer->idContacto = $contacto->id;
-                $customer->idTrabajo = $trabajo->id;
-                $customer->idNegocio = $negocio->id;
+                $customer->photo = $data["photo"];
+                $customer->names = $data["names"];
+                $customer->surnames = $data["surnames"];
+                $customer->nickname = $data["nickname"];
+                $customer->birthDate = $data["birthDate"];
+                $customer->numberDependents = $data["numberDependents"];
+                $customer->gender = $data["gender"];
+                $customer->maritalStatus = $data["maritalStatus"];
+                $customer->nationality = $data["nationality"];
+                $customer->residenceType = $data["residenceType"];
+                $customer->timeInResidence = $data["timeInResidence"];
+                $customer->referredBy = $data["referredBy"];
+                $customer->idDocument = $document->id;
+                $customer->idAddress = $address->id;
+                $customer->idContact = $contact->id;
+                $customer->idJob = $job->id;
+                $customer->idBusiness = $business->id;
                 $customer->save();
             }else{
                 
-                $documento = \App\Document::updateOrCreate(
-                    ["id" => $datos["documento"]["id"]],
+                $document = \App\Document::updateOrCreate(
+                    ["id" => $data["document"]["id"]],
                     [
-                        "descripcion" => $datos["documento"]["descripcion"],
-                        "idTipo" => $datos["documento"]["idTipo"],
+                        "description" => $data["document"]["description"],
+                        "idType" => $data["document"]["idType"],
                     ]
                 );
 
                 
 
-                $direccion = \App\Address::updateOrCreate(
-                    ["id" => $datos["direccion"]["id"]],
+                $address = \App\Address::updateOrCreate(
+                    ["id" => $data["address"]["id"]],
                     [
-                        "direccion" => $datos["direccion"]["direccion"],
-                        "sector" => $datos["direccion"]["sector"],
-                        "idEstado" => $datos["direccion"]["idEstado"],
-                        "idCiudad" => $datos["direccion"]["idCiudad"],
+                        "address" => $data["address"]["address"],
+                        "sector" => $data["address"]["sector"],
+                        "idState" => $data["address"]["idState"],
+                        "idCity" => $data["address"]["idCity"],
                     ]
                 );
 
-                $contacto = \App\Contact::updateOrCreate(
-                    ["id" => $datos["contacto"]["id"]],
+                $contact = \App\Contact::updateOrCreate(
+                    ["id" => $data["contact"]["id"]],
                     [
-                        "telefono" => $datos["contacto"]["telefono"],
-                        "celular" => $datos["contacto"]["celular"],
-                        "correo" => $datos["contacto"]["correo"],
-                        "facebook" => $datos["contacto"]["facebook"],
-                        "instagram" => $datos["contacto"]["instagram"],
+                        "phone" => $data["contact"]["phone"],
+                        "mobile" => $data["contact"]["mobile"],
+                        "email" => $data["contact"]["email"],
+                        "facebook" => $data["contact"]["facebook"],
+                        "instagram" => $data["contact"]["instagram"],
                     ],
                 );
 
-                //Trabajo
-                $direccionTrabajo = \App\Address::updateOrCreate(
-                    ["id" => $datos["trabajo"]["direccion"]["id"]],
+                //job
+                $addressjob = \App\Address::updateOrCreate(
+                    ["id" => $data["job"]["address"]["id"]],
                     [
-                        "direccion" => $datos["trabajo"]["direccion"]["direccion"],
-                        "sector" => $datos["trabajo"]["direccion"]["sector"],
-                        "idEstado" => $datos["trabajo"]["direccion"]["idEstado"],
-                        "idCiudad" => $datos["trabajo"]["direccion"]["idCiudad"],
-                        "numero" => $datos["trabajo"]["direccion"]["numero"],
+                        "address" => $data["job"]["address"]["address"],
+                        "sector" => $data["job"]["address"]["sector"],
+                        "idState" => $data["job"]["address"]["idState"],
+                        "idCity" => $data["job"]["address"]["idCity"],
+                        "number" => $data["job"]["address"]["number"],
                     ]
                 );
 
-                $contactoTrabajo = \App\Contact::updateOrCreate(
-                    ["id" => $datos["trabajo"]["contacto"]["id"]],
+                $contactjob = \App\Contact::updateOrCreate(
+                    ["id" => $data["job"]["contact"]["id"]],
                     [
-                        "telefono" => $datos["trabajo"]["contacto"]["telefono"],
-                        "extension" => $datos["trabajo"]["contacto"]["extension"],
-                        "celular" => $datos["trabajo"]["contacto"]["celular"],
-                        "correo" => $datos["trabajo"]["contacto"]["correo"],
-                        "facebook" => $datos["trabajo"]["contacto"]["facebook"],
-                        "instagram" => $datos["trabajo"]["contacto"]["instagram"],
-                        "fax" => $datos["trabajo"]["contacto"]["fax"],
+                        "phone" => $data["job"]["contact"]["phone"],
+                        "extension" => $data["job"]["contact"]["extension"],
+                        "mobile" => $data["job"]["contact"]["mobile"],
+                        "email" => $data["job"]["contact"]["email"],
+                        "facebook" => $data["job"]["contact"]["facebook"],
+                        "instagram" => $data["job"]["contact"]["instagram"],
+                        "fax" => $data["job"]["contact"]["fax"],
                     ],
                 );
 
-                $trabajo = \App\Job::updateOrCreate(
-                    ["id" => $datos["trabajo"]["id"]],
+                $job = \App\Job::updateOrCreate(
+                    ["id" => $data["job"]["id"]],
                     [
-                        "nombre" => $datos["trabajo"]["nombre"],
-                        "ocupacion" => $datos["trabajo"]["ocupacion"],
-                        "ingresos" => $datos["trabajo"]["ingresos"],
-                        "otrosIngresos" => $datos["trabajo"]["otrosIngresos"],
-                        "fechaIngreso" => $datos["trabajo"]["fechaIngreso"],
-                        "idDireccion" => $direccionTrabajo->id,
-                        "idContacto" => $contactoTrabajo->id,
+                        "name" => $data["job"]["name"],
+                        "occupation" => $data["job"]["occupation"],
+                        "income" => $data["job"]["income"],
+                        "otherIncome" => $data["job"]["otherIncome"],
+                        "admissionDate" => $data["job"]["admissionDate"],
+                        "idAddress" => $addressjob->id,
+                        "idContact" => $contactjob->id,
                     ],
                 );
 
-                //Negocio
-                $direccionNegocio = \App\Address::updateOrCreate(
-                    ["id" => $datos["negocio"]["direccion"]["id"]],
+                //business
+                $addressbusiness = \App\Address::updateOrCreate(
+                    ["id" => $data["business"]["address"]["id"]],
                     [
-                        "direccion" => $datos["negocio"]["direccion"]["direccion"],
-                        "idEstado" => $datos["negocio"]["direccion"]["idEstado"],
-                        "idCiudad" => $datos["negocio"]["direccion"]["idCiudad"],
+                        "address" => $data["business"]["address"]["address"],
+                        "idState" => $data["business"]["address"]["idState"],
+                        "idCity" => $data["business"]["address"]["idCity"],
                     ]
                 );
 
-                $negocio = \App\Business::updateOrCreate(
-                    ["id" => $datos["negocio"]["id"]],
+                $business = \App\Business::updateOrCreate(
+                    ["id" => $data["business"]["id"]],
                     [
-                        "nombre" => $datos["negocio"]["nombre"],
-                        "tipo" => $datos["negocio"]["tipo"],
-                        "tiempoExistencia" => $datos["negocio"]["tiempoExistencia"],
-                        "idDireccion" => $direccionNegocio->id,
+                        "name" => $data["business"]["name"],
+                        "type" => $data["business"]["type"],
+                        "existenceTime" => $data["business"]["existenceTime"],
+                        "idAddress" => $addressbusiness->id,
                     ],
                 );
 
                 //Cliente
-                $fotoPerfil = null;
-                if(isset($datos["foto"]))
-                    $fotoPerfil = $this->guardarFoto($datos["foto"], $documento->descripcion);
+                $photoPerfil = null;
+                if(isset($data["photo"]))
+                    $photoPerfil = $this->savePhoto($data["photo"], $document->description);
                 
                 $customer = Customer::create([
-                    "foto" => $fotoPerfil,
-                    "nombres" => $datos["nombres"],
-                    "apellidos" => $datos["apellidos"],
-                    "apodo" => $datos["apodo"],
-                    "fechaNacimiento" => $datos["fechaNacimiento"],
-                    "numeroDependientes" => $datos["numeroDependientes"],
-                    "sexo" => $datos["sexo"],
-                    "estadoCivil" => $datos["estadoCivil"],
-                    "nacionalidad" => $datos["nacionalidad"],
-                    "tipoVivienda" => $datos["tipoVivienda"],
-                    "tiempoEnVivienda" => $datos["tiempoEnVivienda"],
-                    "referidoPor" => $datos["referidoPor"],
-                    "idContacto" => $contacto->id,
-                    "idDireccion" => $direccion->id,
-                    "idTrabajo" => $trabajo->id,
-                    "idNegocio" => $negocio->id,
-                    "idDocumento" => $documento->id
+                    "photo" => $photoPerfil,
+                    "names" => $data["names"],
+                    "surnames" => $data["surnames"],
+                    "nickname" => $data["nickname"],
+                    "birthDate" => $data["birthDate"],
+                    "numberDependents" => $data["numberDependents"],
+                    "gender" => $data["gender"],
+                    "maritalStatus" => $data["maritalStatus"],
+                    "nationality" => $data["nationality"],
+                    "residenceType" => $data["residenceType"],
+                    "timeInResidence" => $data["timeInResidence"],
+                    "referredBy" => $data["referredBy"],
+                    "idContact" => $contact->id,
+                    "idAddress" => $address->id,
+                    "idJob" => $job->id,
+                    "idBusiness" => $business->id,
+                    "idDocument" => $document->id
                 ]);
 
-                foreach($datos["referencias"] as $referencia){
+                foreach($data["references"] as $referencia){
                     \App\Reference::updateOrCreate(
-                        ["id" => $referencia["id"], "idCliente" => $customer->id],
-                        ["nombre" => $referencia["nombre"], "tipo" => $referencia["tipo"], "parentesco" => $referencia["parentesco"]]
+                        ["id" => $referencia["id"], "idCustomer" => $customer->id],
+                        ["name" => $referencia["name"], "type" => $referencia["type"], "relationship" => $referencia["relationship"]]
                     );
                 }
 
-                $datos["id"] = $customer->id;
+                $data["id"] = $customer->id;
             }
         });
 
         return Response::json([
-            'mensaje' => 'Se ha guardado',
+            'message' => 'Se ha guardado',
             'id' => Customer::latest('id')->first()->id
             // 'clientes' => Customer::orderBy("id", "desc")->cursor() 
         ], 201);
     }
 
-    // public function guardarFoto($base64, $documento){
+    // public function savePhoto($base64, $document){
     //     $file = $base64;
-    //     $safeName = base64_decode($documento) . \Str::random(12).'.'.'png';
+    //     $safeName = base64_decode($document) . \Str::random(12).'.'.'png';
     //     $folderName = \App\Classes\Helper::path();
     //     // $destinationPath = public_path() . $folderName;
     //     Image::make(file_get_contents($base64))->save($folderName.$safeName); 
@@ -366,17 +367,17 @@ class CustomerController extends Controller
     // }
 
     
-    public function guardarFoto($base64Image, $documento){
+    public function savePhoto($base64Image, $document){
         $realImage = base64_decode($base64Image);
-        $safeName = $documento . time() .'.'.'png';
+        $safeName = $document . time() .'.'.'png';
         $path = \App\Classes\Helper::path() . $safeName;
         $success = file_put_contents($path, $realImage);
         return $safeName;
     }
 
-    public function guardarFotovIEJO($base64, $documento){
+    public function guardarphotovIEJO($base64, $document){
         $file = $base64;
-        $safeName = base64_decode($documento) . \Str::random(12).'.'.'png';
+        $safeName = base64_decode($document) . \Str::random(12).'.'.'png';
         $folderName = \App\Classes\Helper::path();
         // $destinationPath = public_path() . $folderName;
         $success = file_put_contents($folderName.$safeName, $file);

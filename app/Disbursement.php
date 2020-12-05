@@ -8,13 +8,13 @@ class Disbursement extends Model
 {
     protected $fillable = [
         "id", 
-        "idTipo", 
-        "idBanco", 
-        "idCuenta", 
-        "numeroCheque", 
-        "idBancoDestino",
-        "idCuentaDestino",
-        "montoBruto",
-        "montoNeto",
+        "idType", 
+        "idBank", 
+        "idAccount", 
+        "checkNumber", 
+        "idBankDestination",
+        "idAccountDestination",
+        "grossAmount",
+        "netAmount",
     ];
 }

@@ -16,7 +16,7 @@ class LoansettingController extends Controller
     public function index()
     {
         return Response::json([
-            "configuracionPrestamo" => Loansetting::first()
+            "loansettings" => Loansetting::first()
         ], 201);
     }
 
@@ -38,27 +38,27 @@ class LoansettingController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.garantia' => '',
-            'data.gasto' => '',
-            'data.desembolso' => '',
+            'data.guarantee' => '',
+            'data.expense' => '',
+            'data.disbursement' => '',
         ])["data"];
 
         $configuracion = Loansetting::updateOrCreate(
             [
-                "id" => $datos["id"]
+                "id" => $data["id"]
             ],
             [
-                "garantia" => $datos["garantia"],
-                "gasto" => $datos["gasto"],
-                "desembolso" => $datos["desembolso"],
+                "guarantee" => $data["guarantee"],
+                "gasto" => $data["gasto"],
+                "disbursement" => $data["disbursement"],
             ]
         );
 
         return Response::json([
-            "mensaje" => "se ha guardado correctamente",
-            "configuracionPrestamo" => $configuracion
+            "message" => "se ha guardado correctamente",
+            "loansettings" => $configuracion
         ], 201);
  
     }

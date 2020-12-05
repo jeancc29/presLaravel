@@ -8,8 +8,8 @@ class Loansetting extends Model
 {
     protected $fillable = [
         "id", 
-        "garantia", 
-        "gasto", 
-        "desembolso", 
+        "guarantee", 
+        "expense", 
+        "disbulsement", 
     ];
 }

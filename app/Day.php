@@ -8,6 +8,6 @@ class Day extends Model
 {
     protected $fillable = [
         "id", 
-        "dia", 
+        "day", 
     ];
 }

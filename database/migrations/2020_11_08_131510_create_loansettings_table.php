@@ -15,9 +15,9 @@ class CreateLoansettingsTable extends Migration
     {
         Schema::create('loansettings', function (Blueprint $table) {
             $table->increments("id");
-            $table->boolean("gasto")->default(0);
-            $table->boolean("garantia")->default(0);
-            $table->boolean("desembolso")->default(0);
+            $table->boolean("expense")->default(0);
+            $table->boolean("guarantee")->default(0);
+            $table->boolean("disbursement")->default(0);
             $table->timestamps();
         });
     }

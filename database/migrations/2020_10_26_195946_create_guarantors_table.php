@@ -15,10 +15,10 @@ class CreateGuarantorsTable extends Migration
     {
         Schema::create('guarantors', function (Blueprint $table) {
             $table->increments("id");
-            $table->string("nombres");
-            $table->string("numeroIdenticacion");
-            $table->string("telefono");
-            $table->text("direccion");
+            $table->string("names");
+            $table->string("identification");
+            $table->string("phone");
+            $table->text("address");
             $table->timestamps();
         });
     }

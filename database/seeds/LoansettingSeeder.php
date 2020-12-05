@@ -16,8 +16,9 @@ class LoansettingSeeder extends Seeder
             return;
 
         \App\Loansetting::create([
-            "garantia" => 0,
-            "gasto" => 0,
+            "guarantee" => 0,
+            "expense" => 0,
+            "disbursement" => 0,
         ]);
     }
 }

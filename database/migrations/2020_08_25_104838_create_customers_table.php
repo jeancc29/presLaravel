@@ -23,9 +23,10 @@ class CreateCustomersTable extends Migration
             $table->integer("numberDependents")->nullable();
             $table->string("gender");
             $table->string("maritalStatus");
-            $table->string("recidenceType");
+            $table->string("residenceType");
             $table->string("timeInResidence")->nullable();
             $table->string("referredBy")->nullable();
+            $table->string("nationality")->nullable();
             $table->integer("status")->default(1);
             $table->unsignedInteger('idContact');
             $table->unsignedInteger('idAddress');

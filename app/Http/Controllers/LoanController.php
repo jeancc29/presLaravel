@@ -17,13 +17,13 @@ class LoanController extends Controller
     public function index()
     {
         return Response::json([
-            "prestamos" => Loan::cursor(),
-            "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
-            "cajas" => \App\Box::cursor(),
-            "bancos" => \App\Bank::cursor(),
-            "cuentas" => \App\Account::get(),
-            "dias" => \App\Day::get(),
-            "configuracionPrestamo" => \App\Loansetting::first()
+            "loans" => Loan::cursor(),
+            "types" => \App\Type::whereIn("category", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
+            "boxes" => \App\Box::cursor(),
+            "banks" => \App\Bank::cursor(),
+            "accounts" => \App\Account::get(),
+            "days" => \App\Day::get(),
+            "loansetting" => \App\Loansetting::first()
         ]);
     }
 
@@ -45,32 +45,32 @@ class LoanController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'data.id' => '',
-            'data.cliente' => '',
-            'data.tipoPlazo' => '',
-            'data.tipoAmortizacion' => '',
-            'data.monto' => '',
-            'data.porcentajeInteres' => '',
-            'data.porcentajeInteresAnual' => '',
-            'data.numeroCuotas' => '',
-            'data.fecha' => '',
-            'data.fechaPrimerPago' => '',
-            'data.caja' => '',
-            'data.codigo' => '',
-            'data.diasExcluidos' => '',
-            'data.porcentajeMora' => '',
-            'data.diasGracia' => '',
-            'data.cobrador' => '',
-            'data.gasto' => '',
-            'data.garante' => '',
-            'data.desembolso' => '',
-            'data.usuario' => '',
+            'data.customer' => '',
+            'data.typeTerm' => '',
+            'data.typeAmortization' => '',
+            'data.amount' => '',
+            'data.interestPercent' => '',
+            'data.annualInteresPercent' => '',
+            'data.quotas' => '',
+            'data.date' => '',
+            'data.firstPaymentDate' => '',
+            'data.box' => '',
+            'data.uniqueCode' => '',
+            'data.daysExcludeds' => '',
+            'data.penaltyPercent' => '',
+            'data.daysOfGrace' => '',
+            'data.collector' => '',
+            'data.expense' => '',
+            'data.guarantor' => '',
+            'data.disbursement' => '',
+            'data.user' => '',
         ])["data"];
 
         return Response::json([
-            "mensaje" => "se ha guardado correctamente",
-            "datos" => $datos
+            "message" => "se ha guardado correctamente",
+            "data" => $data
         ]);
     }
 

@@ -17,9 +17,9 @@ class AccountController extends Controller
     public function index()
     {
         return Response::json([
-            "mensaje" => "",
-            "cuentas" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
-            "bancos" => \App\Bank::take(50)->get()
+            "message" => "",
+            "accounts" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
+            "banks" => \App\Bank::take(50)->get()
         ], 201);
     }
 
@@ -43,22 +43,22 @@ class AccountController extends Controller
     {
         $data = request()->validate([
             "data.id" => "",
-            "data.descripcion" => "",
-            "data.idBanco" => "",
+            "data.description" => "",
+            "data.idBank" => "",
         ])["data"];
 
 
-        $cuenta = Account::updateOrCreate(
+        $account = Account::updateOrCreate(
             ["id" => $data["id"]],
             [
-                "descripcion" => $data["descripcion"],
-                "idBanco" => $data["idBanco"],
+                "description" => $data["description"],
+                "idBank" => $data["idBank"],
             ]
         );
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
-            "cuenta" => new \App\Http\Resources\AccountResource($cuenta)
+            "message" => "Se ha guardado correctamente",
+            "account" => new \App\Http\Resources\AccountResource($account)
         ]);
     }
 
@@ -106,16 +106,16 @@ class AccountController extends Controller
     {
         $data = request()->validate([
             "data.id" => "required",
-            "data.descripcion" => "",
+            "data.description" => "",
         ])["data"];
 
-        $cuenta = Account::whereId($data["id"])->first();
-        if($cuenta != null){
-            $cuenta->delete();
+        $account = Account::whereId($data["id"])->first();
+        if($account != null){
+            $account->delete();
 
             return Response::json([
-                "mensaje" => "La cuenta se ha eliminado correctamente",
-                "cuenta" => $cuenta
+                "message" => "La cuenta se ha eliminado correctamente",
+                "account" => $account
             ]);
         }else{
             \abort(402, "La cuenta no existe");

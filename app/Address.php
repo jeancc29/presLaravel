@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Address extends Model
 {
     protected $fillable = [
-        "id", "direccion", "sector", "numero",
-        "idEstado", "idCiudad"
+        "id", "address", "sector", "number",
+        "idState", "idCity"
     ];
 }

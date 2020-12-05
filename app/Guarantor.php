@@ -8,9 +8,9 @@ class Guarantor extends Model
 {
     protected $fillable = [
         "id", 
-        "nombres", 
-        "numeroIdentificacion", 
-        "telefono", 
-        "direccion", 
+        "names", 
+        "identification", 
+        "phone", 
+        "address", 
     ];
 }

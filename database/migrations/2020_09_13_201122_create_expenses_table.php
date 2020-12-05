@@ -15,13 +15,13 @@ class CreateExpensesTable extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->bigIncrements("id");
-            $table->date("fecha");
-            $table->string("concepto");
-            $table->double("monto", 20);
-            $table->text("comentario")->nullable();
-            $table->unsignedBigInteger("idCaja");
-            $table->unsignedInteger("idTipo"); //Tipo categoria
-            $table->unsignedInteger("idUsuario");
+            $table->date("date");
+            $table->string("concept");
+            $table->double("amount", 20);
+            $table->text("commentary")->nullable();
+            $table->unsignedBigInteger("idBox");
+            $table->unsignedInteger("idType"); //Tipo categoria
+            $table->unsignedInteger("idUser");
             $table->timestamps();
             $table->softDeletes();
         });

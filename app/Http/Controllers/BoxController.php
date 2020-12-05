@@ -16,8 +16,8 @@ class BoxController extends Controller
     public function index()
     {
         return Response::json([
-            "mensaje" => "",
-            "cajas" => Box::where("descripcion", '!=', "Ninguna")->get(),
+            "message" => "",
+            "boxes" => Box::where("description", '!=', "Ninguna")->get(),
         ], 201);
     }
 
@@ -41,28 +41,28 @@ class BoxController extends Controller
     {
         $data = request()->validate([
             "data.id" => "",
-            "data.descripcion" => "",
-            "data.validarDesgloseEfectivo" => "",
-            "data.validarDesgloseCheques" => "",
-            "data.validarDesgloseTarjetas" => "",
-            "data.validarDesgloseTransferencias" => "",
+            "data.description" => "",
+            "data.validateCashBreakdown" => "",
+            "data.validateCheckBreakdown" => "",
+            "data.validateCreditCardBreakdown" => "",
+            "data.validateTransferBreakdown" => "",
         ])["data"];
 
 
-        $caja = Box::updateOrCreate(
+        $box = Box::updateOrCreate(
             ["id" => $data["id"]],
             [
-                "descripcion" => $data["descripcion"],
-                "validarDesgloseEfectivo" => $data["validarDesgloseEfectivo"],
-                "validarDesgloseCheques" => $data["validarDesgloseCheques"],
-                "validarDesgloseTarjetas" => $data["validarDesgloseTarjetas"],
-                "validarDesgloseTransferencias" => $data["validarDesgloseTransferencias"],
+                "description" => $data["description"],
+                "validateCashBreakdown" => $data["validateCashBreakdown"],
+                "validateCheckBreakdown" => $data["validateCheckBreakdown"],
+                "validateCreditCardBreakdown" => $data["validateCreditCardBreakdown"],
+                "validateTransferBreakdown" => $data["validateTransferBreakdown"],
             ]
         );
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
-            "caja" => $caja
+            "message" => "Se ha guardado correctamente",
+            "caja" => $box
         ]);
     }
 
@@ -70,14 +70,14 @@ class BoxController extends Controller
     {
         $data = request()->validate([
             "data.id" => "required",
-            "data.balanceInicial" => "",
-            "data.descripcion" => "",
+            "data.initialBalance" => "",
+            "data.description" => "",
         ])["data"];
 
-        $caja = Box::whereId($data["id"])->first();
-        if($caja != null){
-            $caja->balanceInicial = $data["balanceInicial"];
-            $caja->save();
+        $box = Box::whereId($data["id"])->first();
+        if($box != null){
+            $box->initialBalance = $data["initialBalance"];
+            $box->save();
         }else{
             return Response::json([
                 "message" => "La caja no existe"
@@ -85,7 +85,7 @@ class BoxController extends Controller
         }
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
+            "message" => "Se ha guardado correctamente",
         ]);
     }
 
@@ -133,16 +133,16 @@ class BoxController extends Controller
     {
         $data = request()->validate([
             "data.id" => "required",
-            "data.descripcion" => "",
+            "data.description" => "",
         ])["data"];
 
-        $caja = Box::whereId($data["id"])->first();
-        if($caja != null){
-            $caja->delete();
+        $box = Box::whereId($data["id"])->first();
+        if($box != null){
+            $box->delete();
 
             return Response::json([
-                "mensaje" => "La caja se ha eliminado correctamente",
-                "caja" => $caja
+                "message" => "La caja se ha eliminado correctamente",
+                "caja" => $box
             ]);
         }else{
             \abort(402, "La caja no existe");

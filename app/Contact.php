@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Contact extends Model
 {
     protected $fillable = [
-        "id", "telefono", "extension", 
-        "celular", "fax", "correo", "facebook",
+        "id", "phone", "extension", 
+        "mobile", "fax", "email", "facebook",
         "instagram"
     ];
 }
