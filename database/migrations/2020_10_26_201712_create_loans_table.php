@@ -21,7 +21,7 @@ class CreateLoansTable extends Migration
             $table->integer("numeroCuotas");
             $table->date("fecha");
             $table->date("fechaPrimerPago");
-            $table->string("codigoUnico");
+            $table->string("codigo")->nullable();
             $table->double("porcentajeMora", 5, 2);
             $table->integer("diasGracia");
             $table->unsignedBigInteger("idUsuario");
@@ -30,7 +30,7 @@ class CreateLoansTable extends Migration
             $table->unsignedInteger("idTipoAmortizacion");
             $table->unsignedBigInteger("idCaja");
             $table->unsignedInteger("idCobrador");
-            $table->unsignedInteger("idGasto");
+            // $table->unsignedInteger("idGasto");
             $table->unsignedInteger("idDesembolso");
             //la llave foranea del idUsuario se agregara despues de crear la tabla usuario
             $table->foreign("idCliente")->references("id")->on("customers");

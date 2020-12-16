@@ -13,7 +13,7 @@ class Disbursement extends Model
         "idCuenta", 
         "numeroCheque", 
         "idBancoDestino",
-        "idCuentaDestino",
+        "cuentaDestino",
         "montoBruto",
         "montoNeto",
     ];

@@ -15,10 +15,13 @@ class CreateLoanexpensesTable extends Migration
     {
         Schema::create('loanexpenses', function (Blueprint $table) {
             $table->increments("id");
+            $table->unsignedBigInteger("idPrestamo");
             $table->unsignedInteger("idTipo");
             $table->double("porcentaje", 5, 2);
             $table->decimal("importe", 15, 2);
+            $table->boolean("incluirEnElFinanciamiento")->default(0);
             $table->foreign("idTipo")->references("id")->on("types");
+            $table->foreign("idPrestamo")->references("id")->on("loans");
             $table->timestamps();
         });
     }

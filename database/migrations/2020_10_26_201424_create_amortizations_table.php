@@ -21,8 +21,8 @@ class CreateAmortizationsTable extends Migration
             $table->double("interes", 20, 2);
             $table->double("capital", 20, 2);
             $table->double("capitalRestante", 20, 2);
-            $table->double("capitalSaldado", 20, 2);
-            $table->double("interesSaldado", 20, 2);
+            $table->double("capitalSaldado", 20, 2)->default(0);
+            $table->double("interesSaldado", 20, 2)->default(0);
             $table->date("fecha", 20, 2);
             $table->timestamps();
         });

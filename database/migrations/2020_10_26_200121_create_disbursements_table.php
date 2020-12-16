@@ -17,9 +17,10 @@ class CreateDisbursementsTable extends Migration
             $table->increments("id");
             $table->integer("idTipo");
             $table->integer("idBanco")->nullable();
+            $table->integer("idCuenta")->nullable();
             $table->string("numeroCheque")->nullable();
             $table->integer("idBancoDestino")->nullable();
-            $table->integer("idCuentaDestino")->nullable();
+            $table->string("cuentaDestino")->nullable();
             $table->double("montoBruto", 20, 2);
             $table->double("montoNeto", 20, 2);
             $table->timestamps();

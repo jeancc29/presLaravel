@@ -12,5 +12,6 @@ class Guarantor extends Model
         "numeroIdentificacion", 
         "telefono", 
         "direccion", 
+        "idPrestamo", 
     ];
 }

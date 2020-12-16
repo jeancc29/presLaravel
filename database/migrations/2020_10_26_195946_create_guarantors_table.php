@@ -17,6 +17,7 @@ class CreateGuarantorsTable extends Migration
             $table->increments("id");
             $table->string("nombres");
             $table->string("numeroIdenticacion");
+            $table->unsignedBigInteger("idPrestamo");
             $table->string("telefono");
             $table->text("direccion");
             $table->timestamps();
