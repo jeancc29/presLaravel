@@ -93,6 +93,8 @@ class LoanController extends Controller
             'data.amortizaciones' => '',
         ])["data"];
 
+        $prestamo = null;
+
         \DB::transaction(function() use($datos){
             
 
@@ -215,13 +217,32 @@ class LoanController extends Controller
                 
     
         });
-        
-
+        $prestamo = Loan::latest('id')->first();
+        $prestamo = \DB::select("select
+        l.id,
+        (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
+        l.monto,
+        l.porcentajeInteres,
+        (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
+        l.numeroCuotas,
+        l.monto as balancePendiente,
+        l.monto as capitalPendiente,
+        l.created_at fechaProximoPago,
+        (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
+        l.codigo codigo,
+        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
+        from loans l 
+         inner join customers c on c.id = l.idCliente 
+         inner join types t on t.id = l.idTipoAmortizacion 
+         inner join boxes b on b.id = l.idCaja
+         where l.id = {$prestamo->id}
+         limit 1 ");
         
         
         return Response::json([
             "mensaje" => "se ha guardado correctamente",
-            "datos" => $datos
+            // "datos" => $datos,
+            "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null
         ]);
     }
 
