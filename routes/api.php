@@ -45,6 +45,7 @@ Route::post('/accounts/delete', 'AccountController@destroy');
 
 Route::get('/loans', 'LoanController@index');
 Route::get('/loans/search', 'LoanController@search');
+Route::post('/loans/show', 'LoanController@show');
 Route::post('/loans/store', 'LoanController@store');
 Route::post('/loans/delete', 'LoanController@destroy');
 
