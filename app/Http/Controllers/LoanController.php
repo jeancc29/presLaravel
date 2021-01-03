@@ -273,13 +273,15 @@ class LoanController extends Controller
         l.created_at fechaProximoPago,
         (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
         l.codigo codigo,
-        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
+        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja,
+        (select JSON_ARRAYAGG(JSON_OBJECT('id', amortizations.id, 'capital', amortizations.capital, 'interes', amortizations.interes, 'cuota', amortizations.cuota, 'fecha', amortizations.fecha)) from amortizations where amortizations.idPrestamo = l.id) as amortizaciones
         from loans l 
          inner join customers c on c.id = l.idCliente 
          inner join types t on t.id = l.idTipoAmortizacion 
          inner join boxes b on b.id = l.idCaja
          left join documents d on d.id = c.idDocumento
          left join contacts co on co.id = c.idContacto
+
          where l.id = {$datos['id']}
          limit 1 ");
 
