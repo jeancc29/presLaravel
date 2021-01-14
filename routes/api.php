@@ -51,3 +51,15 @@ Route::post('/loans/delete', 'LoanController@destroy');
 
 Route::get('/loansettings', 'LoansettingController@index');
 Route::post('/loansettings/store', 'LoansettingController@store');
+
+Route::get('/roles', 'RoleController@index');
+Route::post('/roles/store', 'RoleController@store');
+Route::post('/roles/delete', 'RoleController@destroy');
+
+Route::get('/branchoffices', 'BranchofficeController@index');
+Route::post('/branchoffices/store', 'BranchofficeController@store');
+Route::post('/branchoffices/delete', 'BranchofficeController@destroy');
+
+Route::get('/companies', 'CompanyController@index');
+Route::post('/companies/store', 'CompanyController@store');
+Route::post('/companies/delete', 'CompanyController@destroy');

@@ -77,5 +77,10 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Motor"], ["renglon" => "tipoVehiculo"]);
         \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "tipoVehiculo"]);
 
+        \App\Type::updateOrCreate(["descripcion" => "Capital pendiente"], ["renglon" => "mora"]);
+        \App\Type::updateOrCreate(["descripcion" => "Cuota vencida"], ["renglon" => "mora"]);
+        \App\Type::updateOrCreate(["descripcion" => "Capital vencido"], ["renglon" => "mora"]);
+
+
     }
 }

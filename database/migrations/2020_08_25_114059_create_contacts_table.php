@@ -22,6 +22,7 @@ class CreateContactsTable extends Migration
             $table->string("correo")->nullable();
             $table->string("facebook")->nullable();
             $table->string("instagram")->nullable();
+            $table->string("rnc")->nullable();
             $table->timestamps();
         });
     }

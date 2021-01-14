@@ -18,6 +18,7 @@ class CreateAddressesTable extends Migration
             $table->string("direccion")->nullable();
             $table->unsignedInteger("idEstado");
             $table->unsignedInteger("idCiudad");
+            $table->unsignedInteger("idPais")->nullable();
             $table->string("sector")->nullable();
             $table->string("numero")->nullable();
             $table->timestamps();
