@@ -151,7 +151,7 @@ class CoinSeeder extends Seeder
             ["codigo" => "UYU"],
             [
                 "nombre" => "Peso Uruguayo",
-                "simbolo" => "$​",
+                "simbolo" => "\$​",
                 "equivalenciaDolar" => 1
             ]
         );
