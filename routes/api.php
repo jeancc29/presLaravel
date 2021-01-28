@@ -63,3 +63,8 @@ Route::post('/branchoffices/delete', 'BranchofficeController@destroy');
 Route::get('/companies', 'CompanyController@index');
 Route::post('/companies/store', 'CompanyController@store');
 Route::post('/companies/delete', 'CompanyController@destroy');
+
+Route::get('/users', 'UserController@index');
+Route::post('/users/login', 'UserController@login');
+Route::post('/users/store', 'UserController@store');
+Route::post('/users/delete', 'UserController@destroy');

@@ -55,6 +55,7 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.idUsuario' => '',
             'data.id' => '',
             'data.foto' => '',
             'data.nombreFoto' => '',
@@ -114,6 +115,14 @@ class CompanyController extends Controller
                 "empresa" => new \App\Http\Resources\CompanyResource($empresa)
             ]
         );
+    }
+
+    public function guardarFoto($base64Image, $documento){
+        $realImage = base64_decode($base64Image);
+        $safeName = $documento . time() .'.'.'png';
+        $path = \App\Classes\Helper::path() . $safeName;
+        $success = file_put_contents($path, $realImage);
+        return $safeName;
     }
 
     /**

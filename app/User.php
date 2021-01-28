@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'nombres', 'apellidos', 'correo', 'telefono', 'idContacto', 'idRol', 'idSucursal', 'idEmpresa', 'password', 'usuario', 'foto', 'status'
     ];
 
     /**
@@ -36,4 +36,34 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function cajas()
+    {
+        return $this->belongsToMany('App\Box', 'box_user', 'idUsuario', 'idCaja')->withPivot('created_at');
+    }
+
+    public function contacto()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Contact', 'id', 'idContacto');
+    }
+    public function rol()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Role', 'id', 'idRol');
+    }
+    public function sucursal()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Branchoffice', 'id', 'idSucursal');
+    }
+    public function empresa()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Company', 'id', 'idEmpresa');
+    }
+
+    public function permisos(){
+        return $this->belongsToMany("App\Permission", "permission_user", "idUsuario", "idPermiso")->withPivot("created_at");
+    }
 }

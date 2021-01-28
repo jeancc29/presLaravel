@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->truncateTables(["boxes", "countries", "states", "cities", "types", "days", "permissions", "roles", "entities", "permission_role", "coins"]);
+        $this->truncateTables(["boxes", "countries", "states", "cities", "types", "days", "permissions", "roles", "entities", "permission_role", "coins", "branchoffices"]);
         $this->call(BoxSeeder::class);
         $this->call(CountrySeeder::class);
         $this->call(StateSeeder::class);
@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(RoleSeeder::class);
         $this->call(CoinSeeder::class);
+        $this->call(BranchofficeSeeder::class);
     }
 
     public function truncateTables(array $tables)

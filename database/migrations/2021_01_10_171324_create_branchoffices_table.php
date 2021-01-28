@@ -18,10 +18,10 @@ class CreateBranchofficesTable extends Migration
             $table->string("nombre");
             $table->string("direccion");
             $table->string("ciudad");
-            $table->string("telefono1");
-            $table->string("telefono2");
-            $table->string("gerenteSucursal");
-            $table->string("gerenteCobro");
+            $table->string("telefono1")->nullable();
+            $table->string("telefono2")->nullable();
+            $table->string("gerenteSucursal")->nullable();
+            $table->string("gerenteCobro")->nullable();
             $table->boolean("status")->default(1);
             $table->string("foto")->nullable();
             $table->timestamps();
