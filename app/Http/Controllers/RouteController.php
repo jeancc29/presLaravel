@@ -15,9 +15,20 @@ class RouteController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Rutas", ["Ver"]);
+
         return Response::json([
             'mensaje' => '',
-            'rutas' => \App\Route::cursor(),
+            'rutas' => \App\Route::where("idEmpresa", $data["idEmpresa"])->cursor(),
         ], 201);
     }
 
@@ -40,16 +51,22 @@ class RouteController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.descripcion' => 'required',
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+        
+
         $ruta = Route::updateOrCreate(
-            ["id" => $datos["id"]],
+            ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $datos["descripcion"],
             ]
         );
+
         return Response::json([
             "ruta" => $ruta,
             "mensaje" => "Se ha guardado correctamente",
@@ -99,12 +116,17 @@ class RouteController extends Controller
     public function destroy(Route $route)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.descripcion' => '',
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Eliminar"]);
+        
+
         try {
-            $ruta = Route::whereId($datos['id'])->first();
+            $ruta = Route::whereId(["id" => $datos['id'], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
             if($ruta != null)
             {
                 $ruta->delete();

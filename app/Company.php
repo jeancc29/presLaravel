@@ -8,7 +8,7 @@ class Company extends Model
 {
     protected $fillable = [
         "id", "nombre", "foto", "diasGracia", "porcentajeMora",
-        "idDireccion", "idContacto", "idTipoMora", "idMoneda", "status"
+        "idDireccion", "idContacto", "idTipoMora", "idMoneda", "status", "idEmpresa"
     ];
 
     public function direccion()

@@ -21,6 +21,7 @@ class CreateBoxesTable extends Migration
             $table->boolean("validarDesgloseCheques")->default(0);
             $table->boolean("validarDesgloseTarjetas")->default(0);
             $table->boolean("validarDesgloseTransferencias")->default(0);
+            $table->unsignedInteger("idEmpresa");
             
             $table->timestamps();
         });

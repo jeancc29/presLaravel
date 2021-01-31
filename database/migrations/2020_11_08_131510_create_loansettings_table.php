@@ -18,6 +18,7 @@ class CreateLoansettingsTable extends Migration
             $table->boolean("gasto")->default(0);
             $table->boolean("garantia")->default(0);
             $table->boolean("desembolso")->default(0);
+            $table->unsignedInteger("idEmpresa");
             $table->timestamps();
         });
     }

@@ -17,11 +17,24 @@ class UserController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Roles", ["Ver"]);
+
+        $rolProgramador = \App\Role::whereDescripcion("Programador")->first();
+
         return Response::json([
-            "roles" => \App\Http\Resources\RoleResource::collection(\App\Role::all()),
-            "cajas" => \App\Box::all(),
-            "sucursales" => \App\Branchoffice::all(),
-            "usuarios" => \App\Http\Resources\UserResource::collection(User::take(50)->get()),
+            "roles" => \App\Http\Resources\RoleResource::collection(\App\Role::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $rolProgramador->id)->take(50)->get()),
+            "cajas" => \App\Box::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
+            "sucursales" => \App\Branchoffice::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
+            "usuarios" => \App\Http\Resources\UserResource::collection(User::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $data["id"])->where("idRol", "!=", $rolProgramador->id)->take(50)->get()),
             "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get())
         ]);
     }
@@ -61,9 +74,10 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = request()->validate([
+            "data.usuarioData" => "",
+            "data.usuario" => "",
             "data.id" => "",
             'data.foto' => '',
-            'data.usuario' => '',
             'data.nombreFoto' => '',
             "data.nombres" => "",
             "data.apellidos" => "",
@@ -77,7 +91,8 @@ class UserController extends Controller
             "data.status" => "",
         ])["data"];
 
-        
+        \App\Classes\Helper::validateApiKey($data["usuarioData"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuarioData"], "Usuarios", ["Guardar"]);
 
         $usuario = User::whereUsuario($data["usuario"])->first();
         if($usuario != null){
@@ -110,17 +125,24 @@ class UserController extends Controller
             // "password" => $data["password"],
             "idRol" => $data["rol"]["id"],
             "idSucursal" => $data["sucursal"]["id"],
-            "idEmpresa" => $data["empresa"]["id"],
+            "idEmpresa" => $data["usuarioData"]["id"],
             "status" => $data["status"],
         ];
 
         if($data["password"] != null)
             $dataArray["password"] = Crypt::encryptString($data["password"]);
+
+            // return Response::json([
+            //     "message" => "Yo",
+            //     "data" => $dataArray
+            // ], 404);
         
         $usuario = User::updateOrCreate(
             ["id" => $data["id"]],
             $dataArray
         );
+
+        
 
         $cajas = collect($data["cajas"])->map(function($d) use($usuario){
             return ["idCaja" => $d["id"], "idUsuario" => $usuario->id];
@@ -181,12 +203,17 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.descripcion" => "",
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cajas", ["Guardar"]);
+
         $data = User::whereId($data["id"])->first();
         if($data != null){
+            $data->permisos()->detach();
             $data->delete();
 
             return Response::json([

@@ -15,11 +15,22 @@ class ExpenseController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Gastos", ["Ver"]);
+        
         return Response::json([
             'mensaje' => '',
             'tipos' => \App\Type::whereRenglon("gasto")->cursor(),
-            'cajas' => \App\Box::cursor(),
-            'gastos' => \App\Http\Resources\ExpenseResource::collection(Expense::cursor()),
+            'cajas' => \App\Box::where("idEmpresa", $data["idEmpresa"])->cursor(),
+            'gastos' => \App\Http\Resources\ExpenseResource::collection(Expense::where("idEmpresa", $data["idEmpresa"])->cursor()),
         ], 201);
     }
 
@@ -42,6 +53,7 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.fecha' => '',
             'data.concepto' => '',
@@ -52,9 +64,11 @@ class ExpenseController extends Controller
             'data.idUsuario' => '',
         ])["data"];
 
-
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+        
         $gasto = Expense::updateOrCreate(
-            ["id" => $datos["id"]],
+            ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "id" => $datos["id"],
                 "fecha" => $datos["fecha"],
@@ -116,6 +130,7 @@ class ExpenseController extends Controller
     public function destroy(Expense $expense)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.fecha' => '',
             'data.concepto' => '',
@@ -126,7 +141,11 @@ class ExpenseController extends Controller
             'data.idUsuario' => '',
         ])["data"];
 
-        $gasto = Expense::whereId($datos["id"])->first();
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+        
+
+        $gasto = Expense::whereId([$datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
         if($gasto != null){
             $gasto->delete();
         }

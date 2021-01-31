@@ -16,6 +16,19 @@ class LoanController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Prestamos", ["Ver"]);
+
+        $idEmpresa = $data["idEmpresa"];
+
         $fecha = getdate();
         $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
         $fechaFinal = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 23:50:00';
@@ -36,17 +49,18 @@ class LoanController extends Controller
          inner join customers c on c.id = l.idCliente 
          inner join types t on t.id = l.idTipoAmortizacion 
          inner join boxes b on b.id = l.idCaja 
+        where l.idEmpresa = $idEmpresa
          limit 50 ");
         //  where l.created_at between '{$fechaInicial}' and '{$fechaFinal}' limit 50 ");
 
         return Response::json([
             "prestamos" => $prestamos,
             "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
-            "cajas" => \App\Box::cursor(),
-            "bancos" => \App\Bank::cursor(),
-            "cuentas" => \App\Account::get(),
+            "cajas" => \App\Box::where("idEmpresa", $idEmpresa)->cursor(),
+            "bancos" => \App\Bank::where("idEmpresa", $idEmpresa)->cursor(),
+            "cuentas" => \App\Account::where("idEmpresa", $idEmpresa)->get(),
             "dias" => \App\Day::get(),
-            "configuracionPrestamo" => \App\Loansetting::first()
+            "configuracionPrestamo" => \App\Loansetting::where("idEmpresa", $idEmpresa)->first()
         ]);
     }
 
@@ -71,6 +85,7 @@ class LoanController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.cliente' => '',
             'data.tipoPlazo' => '',
@@ -94,6 +109,10 @@ class LoanController extends Controller
             'data.usuario' => '',
             'data.amortizaciones' => '',
         ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Prestamos", ["Guardar"]);
+        
 
         $prestamo = null;
 
@@ -130,7 +149,8 @@ class LoanController extends Controller
                     "porcentajeMora" => $datos["porcentajeMora"],
                     "diasGracia" => $datos["diasGracia"],
                     // "idUsuario" => $datos["usuario"]["id"],
-                    "idUsuario" => 1,
+                    "idEmpresa" => $datos["usuario"]["idEmpresa"],
+                    "idUsuario" => $datos["usuario"]["id"],
                     "idCliente" => $datos["cliente"]["id"],
                     "idTipoPlazo" => $datos["tipoPlazo"]["id"],
                     "idTipoAmortizacion" => $datos["tipoAmortizacion"]["id"],
@@ -219,7 +239,7 @@ class LoanController extends Controller
                 
     
         });
-        $prestamo = Loan::latest('id')->first();
+        $prestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
         $prestamo = \DB::select("select
         l.id,
         (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
@@ -257,8 +277,12 @@ class LoanController extends Controller
     public function show(Loan $loan)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
         ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Prestamos", ["Guardar"]);
 
 
         $prestamo = \DB::select("select
@@ -282,7 +306,7 @@ class LoanController extends Controller
          left join documents d on d.id = c.idDocumento
          left join contacts co on co.id = c.idContacto
 
-         where l.id = {$datos['id']}
+         where l.id = {$datos['id']} and l.idPrestamo = {$datos['usuario']['idEmpresa']}
          limit 1 ");
 
          return Response::json([

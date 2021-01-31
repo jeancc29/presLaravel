@@ -11,7 +11,7 @@ class Customer extends Model
         "fechaNacimiento", "numeroDependientes",
         "sexo", "estadoCivil", "estado", "idContacto",
         "idDireccion", "idDocumento", "tipoVivienda", "tiempoEnVivienda", "referidoPor",
-        "idTrabajo", "idNegocio"
+        "idTrabajo", "idNegocio", "idEmpresa"
     ];
 
     public function documento()

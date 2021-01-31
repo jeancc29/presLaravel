@@ -16,6 +16,7 @@ class Expense extends Model
         'idCaja', 
         'idTipo', 
         'idUsuario', 
+        'idEmpresa', 
     ];
 
     public function tipo()

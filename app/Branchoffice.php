@@ -17,5 +17,6 @@ class Branchoffice extends Model
         'gerenteSucursal', 
         'gerenteCobro', 
         'status', 
+        'idEmpresa', 
     ];
 }

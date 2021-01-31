@@ -27,6 +27,7 @@ class CreateCustomersTable extends Migration
             $table->string("tiempoEnVivienda")->nullable();
             $table->string("referidoPor")->nullable();
             $table->integer("estado")->default(1);
+            $table->unsignedInteger('idEmpresa');
             $table->unsignedInteger('idContacto');
             $table->unsignedInteger('idDireccion');
             $table->unsignedInteger('idDocumento');

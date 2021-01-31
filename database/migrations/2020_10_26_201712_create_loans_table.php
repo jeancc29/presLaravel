@@ -24,6 +24,7 @@ class CreateLoansTable extends Migration
             $table->string("codigo")->nullable();
             $table->double("porcentajeMora", 5, 2);
             $table->integer("diasGracia");
+            $table->unsignedInteger("idEmpresa");
             $table->unsignedBigInteger("idUsuario");
             $table->unsignedBigInteger("idCliente");
             $table->unsignedInteger("idTipoPlazo");

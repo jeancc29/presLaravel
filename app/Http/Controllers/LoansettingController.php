@@ -15,8 +15,20 @@ class LoansettingController extends Controller
      */
     public function index()
     {
+
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Configuraciones", ["Prestamo"]);
+
         return Response::json([
-            "configuracionPrestamo" => Loansetting::first()
+            "configuracionPrestamo" => Loansetting::where("idEmpresa", $data["idEmpresa"])->first()
         ], 201);
     }
 
@@ -39,15 +51,20 @@ class LoansettingController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.garantia' => '',
             'data.gasto' => '',
             'data.desembolso' => '',
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Configuraciones", ["Prestamo"]);
+        
+
         $configuracion = Loansetting::updateOrCreate(
             [
-                "id" => $datos["id"]
+                "id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]
             ],
             [
                 "garantia" => $datos["garantia"],

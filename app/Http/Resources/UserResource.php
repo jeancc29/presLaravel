@@ -27,6 +27,8 @@ class UserResource extends JsonResource
             "sucursal" => $this->sucursal,
             "permisos" => $this->permisos,
             "status" => $this->status,
+            "idEmpresa" => $this->idEmpresa,
+            "idRol" => $this->idRol,
         ];
     }
 }

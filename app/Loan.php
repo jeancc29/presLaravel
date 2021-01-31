@@ -13,6 +13,7 @@ class Loan extends Model
         "idTipoPlazo", 
         "idTipoAmortizacion", 
         "idCaja", 
+        "idEmpresa", 
         "idCobrador", 
         // "idGasto", 
         // "idGarante", 

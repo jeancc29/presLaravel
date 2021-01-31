@@ -1,5 +1,6 @@
 <?php
 namespace App\Classes;
+use Illuminate\Support\Facades\Response; 
 
 class Helper{
 
@@ -34,6 +35,32 @@ class Helper{
         );
 
         return \Firebase\JWT\JWT::encode($token, $key);
+    }
+
+    public static function validateApiKey($apiKey){
+        try {
+            Helper::jwtDecode($apiKey);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return Response::json([
+                "message" => "Api key invalido"
+            ], 404);
+        }
+    }
+
+    public static function validatePermissions($usuario, $entidad, $permisos){
+       $permisos = implode(",", $permisos);
+       $idUsuario = $usuario["id"];
+
+        $datos = \DB::select("
+            select 
+                pu.id
+            from users u
+            inner join permission_user pu on pu.idUsuario = u.id
+            where u.id = $idUsuario and pu.idPermiso in (select permissions.id from permissions where permissions.idEntidad = (select entities.id from entities where entities.descripcion = '$entidad') and permissions.descripcion in ('$permisos'))
+        ");
+
+        return count($datos) > 0 ? true : Response::json(["message" => "No tiene permiso para realizar esta acción"], 404);;
     }
 
 }

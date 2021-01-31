@@ -13,5 +13,6 @@ class Box extends Model
         'validarDesgloseCheques', 
         'validarDesgloseTarjetas', 
         'validarDesgloseTransferencias', 
+        'idEmpresa', 
     ];
 }

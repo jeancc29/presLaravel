@@ -17,6 +17,7 @@ class CreateBanksTable extends Migration
             $table->increments("id");
             $table->string("descripcion");
             $table->integer("estado")->default(1);
+            $table->unsignedInteger("idEmpresa");
             $table->timestamps();
             $table->softDeletes();
         });

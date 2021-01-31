@@ -24,11 +24,22 @@ class CompanyController extends Controller
 
         //Buscar usuario para obtener la empresa y luego buscar y retornar la empresa correspondiente al usuario
         // User::whereId($datos["idUsuario"])->first();
+
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Configuraciones", ["Empresa"]);
         
         $empresa = Company::first();
         return Response::json([
             "mensaje" => "",
-            "empresa" => ($empresa == null) ? null : new \App\Http\Resources\CompanyResource(Company::first()),
+            "empresa" => ($empresa == null) ? null : new \App\Http\Resources\CompanyResource(Company::where("idEmpresa", $data["idEmpresa"])->first()),
             'ciudades' => \App\City::cursor(),
             'estados' => \App\State::cursor(),
             'tipos' => \App\Type::whereRenglon("mora")->get(),
@@ -55,6 +66,7 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.idUsuario' => '',
             'data.id' => '',
             'data.foto' => '',
@@ -67,6 +79,10 @@ class CompanyController extends Controller
             'data.porcentajeMora' => '',
             'data.tipoMora' => '',
         ])["data"];
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Configuraciones", ["Empresa"]);
+        
 
         //Cliente
         $fotoPerfil = null;
@@ -95,7 +111,7 @@ class CompanyController extends Controller
             );
 
         $empresa = Company::updateOrCreate(
-            ["id" => $datos["id"]],
+            ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "foto" => $fotoPerfil,
                 "nombre" => $datos["nombre"],

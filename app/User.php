@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'nombres', 'apellidos', 'correo', 'telefono', 'idContacto', 'idRol', 'idSucursal', 'idEmpresa', 'password', 'usuario', 'foto', 'status'
+        'nombres', 'apellidos', 'correo', 'telefono', 'idContacto', 'idRol', 'idSucursal', 'idEmpresa', 'password', 'usuario', 'foto', 'status', 'idEmpresa'
     ];
 
     /**
@@ -36,6 +36,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function tienePermiso($entidad, $permiso){
+        $entidad = \App\Entity::whereDescripcion($entidad)->first();
+
+        if($entidad == null)
+            return false;
+
+        if($this->permisos()->where(["descripcion" => $permiso, "idEntidad" => $entidad->id])->first() != null && $this->status == 1)
+            return true;
+        else
+            return false;
+    }
 
     public function cajas()
     {

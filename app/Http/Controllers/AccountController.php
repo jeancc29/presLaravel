@@ -16,10 +16,21 @@ class AccountController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Cuentas", ["Ver"]);
+
         return Response::json([
             "mensaje" => "",
-            "cuentas" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
-            "bancos" => \App\Bank::take(50)->get()
+            "cuentas" => \App\Http\Resources\AccountResource::collection(Account::where("idEmpresa", $data["idEmpresa"])->take(20)->get()),
+            "bancos" => \App\Bank::where("idEmpresa", $data["idEmpresa"])->take(50)->get()
         ], 201);
     }
 
@@ -42,14 +53,17 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $data = request()->validate([
+            "data.usuario" => "",
             "data.id" => "",
             "data.descripcion" => "",
             "data.idBanco" => "",
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cuentas", ["Guardar"]);
 
         $cuenta = Account::updateOrCreate(
-            ["id" => $data["id"]],
+            ["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $data["descripcion"],
                 "idBanco" => $data["idBanco"],
@@ -105,11 +119,16 @@ class AccountController extends Controller
     public function destroy(Account $account)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.descripcion" => "",
         ])["data"];
 
-        $cuenta = Account::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cuentas", ["Eliminar"]);
+
+
+        $cuenta = Account::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($cuenta != null){
             $cuenta->delete();
 

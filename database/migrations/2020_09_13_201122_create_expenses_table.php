@@ -22,6 +22,7 @@ class CreateExpensesTable extends Migration
             $table->unsignedBigInteger("idCaja");
             $table->unsignedInteger("idTipo"); //Tipo categoria
             $table->unsignedInteger("idUsuario");
+            $table->unsignedInteger("idEmpresa");
             $table->timestamps();
             $table->softDeletes();
         });

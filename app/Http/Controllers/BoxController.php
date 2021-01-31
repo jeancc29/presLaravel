@@ -15,9 +15,20 @@ class BoxController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Cajas", ["Ver"]);
+
         return Response::json([
             "mensaje" => "",
-            "cajas" => Box::where("descripcion", '!=', "Ninguna")->get(),
+            "cajas" => Box::where("descripcion", '!=', "Ninguna")->where("idEmpresa", $data["idEmpresa"])->get(),
         ], 201);
     }
 
@@ -40,6 +51,7 @@ class BoxController extends Controller
     public function store(Request $request)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "",
             "data.descripcion" => "",
             "data.validarDesgloseEfectivo" => "",
@@ -48,9 +60,12 @@ class BoxController extends Controller
             "data.validarDesgloseTransferencias" => "",
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cajas", ["Guardar"]);
+
 
         $caja = Box::updateOrCreate(
-            ["id" => $data["id"]],
+            ["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $data["descripcion"],
                 "validarDesgloseEfectivo" => $data["validarDesgloseEfectivo"],
@@ -69,12 +84,16 @@ class BoxController extends Controller
     public function abrirCaja(Request $request)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.balanceInicial" => "",
             "data.descripcion" => "",
         ])["data"];
 
-        $caja = Box::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cajas", ["Abrir"]);
+
+        $caja = Box::whereId(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($caja != null){
             $caja->balanceInicial = $data["balanceInicial"];
             $caja->save();
@@ -132,11 +151,15 @@ class BoxController extends Controller
     public function destroy(Box $box)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.descripcion" => "",
         ])["data"];
 
-        $caja = Box::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Cajas", ["Eliminar"]);
+
+        $caja = Box::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($caja != null){
             $caja->delete();
 

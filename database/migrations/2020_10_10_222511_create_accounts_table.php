@@ -17,6 +17,7 @@ class CreateAccountsTable extends Migration
             $table->increments("id");
             $table->string("descripcion");
             $table->unsignedInteger("idBanco");
+            $table->unsignedInteger("idEmpresa");
             $table->timestamps();
             $table->softDeletes();
 

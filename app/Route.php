@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Route extends Model
 {
     protected $fillable = [
-        'descripcion', 
+        'descripcion', 'idEmpresa'
     ];
 }

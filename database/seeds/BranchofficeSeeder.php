@@ -17,6 +17,7 @@ class BranchofficeSeeder extends Seeder
                 "nombre" => "Ninguna", 
                 "direccion" => "Ninguna",
                 "ciudad" => "Ninguna",
+                "idEmpresa" => 1,
             ],
         );
     }

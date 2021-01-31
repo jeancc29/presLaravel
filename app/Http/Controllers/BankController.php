@@ -16,9 +16,20 @@ class BankController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Bancos", ["Ver"]);
+
         return Response::json([
             "mensaje" => "",
-            "bancos" => Bank::take(20)->get(),
+            "bancos" => Bank::where("idEmpresa", $data["idEmpresa"])->take(20)->get(),
         ], 201);
     }
 
@@ -41,14 +52,18 @@ class BankController extends Controller
     public function store(Request $request)
     {
         $data = request()->validate([
+            "data.usuario" => "",
             "data.id" => "",
             "data.descripcion" => "",
             "data.estado" => "",
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Bancos", ["Guardar"]);
+
 
         $banco = Bank::updateOrCreate(
-            ["id" => $data["id"]],
+            ["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $data["descripcion"],
                 "estado" => $data["estado"],
@@ -104,11 +119,15 @@ class BankController extends Controller
     public function destroy(Bank $bank)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.descripcion" => "",
         ])["data"];
 
-        $banco = Bank::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Roles", ["Eliminar"]);
+
+        $banco = Bank::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($banco != null){
             $banco->delete();
 

@@ -11,7 +11,10 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
-        \App\Role::updateOrCreate(["descripcion" => 'Agente'],);
+        
+        $empresa = \App\Company::whereNombre("Prueba")->first();
+
+        \App\Role::updateOrCreate(["descripcion" => 'Agente'], ["idEmpresa" => $empresa->id]);
         $agente = \App\Role::whereDescripcion("Agente")->first();
         if($agente != null){
             $entidades = \App\Entity::whereIn("descripcion", ["Clientes", "Cajas", "Prestamos"])->get();
@@ -26,10 +29,23 @@ class RoleSeeder extends Seeder
             $agente->permisos()->attach($permisos);
         }
 
-        \App\Role::updateOrCreate(["descripcion" => 'Supervisor']);
-        $agente = \App\Role::whereDescripcion("Agente")->first();
+        $agente = \App\Role::updateOrCreate(["descripcion" => 'Supervisor'], ["idEmpresa" => $empresa->id]);
         if($agente != null){
             $entidades = \App\Entity::whereIn("descripcion", ["Clientes", "Cajas", "Prestamos", "Pagos"])->get();
+            $entidades = collect($entidades)->map(function($data){
+                return $data->id;
+            });
+            
+            $permisos = \App\Permission::whereIn("idEntidad", $entidades)->get();
+            $permisos = collect($permisos)->map(function($d) use($agente){
+                return ['idPermiso' => $d['id'], 'idRol' => $agente["id"]];
+            });
+            $agente->permisos()->attach($permisos);
+        }
+
+        $agente = \App\Role::updateOrCreate(["descripcion" => 'Programador'], ["idEmpresa" => $empresa->id]);
+        if($agente != null){
+            $entidades = \App\Entity::all();
             $entidades = collect($entidades)->map(function($data){
                 return $data->id;
             });

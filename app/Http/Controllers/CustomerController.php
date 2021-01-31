@@ -16,23 +16,44 @@ class CustomerController extends Controller
      */
     public function index()
     {
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        // return Response::json([
+        //     "message" => $data["apiKey"]
+        // ], 404);
+
+        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
+
         return Response::json([
             'mensaje' => '',
             'ciudades' => \App\City::cursor(),
             'estados' => \App\State::cursor(),
-            'clientes' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::cursor()),
+            'clientes' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::where("idEmpresa", $datos["idEmpresa"])->cursor()),
         ], 201);
     }
 
     public function search()
     {
-        $datos = request()->validate([
+        $data = request()->validate([
             'datos' => '',
+            'idEmpresa' => '',
         ]);
+
+        // \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        // \App\Classes\Helper::validatePermissions($data["usuario"], "Clientes", ["Guardar"]);
         
-        $searchTerm = $datos["datos"];
+        $searchTerm = $data["datos"];
         $clientes = Customer::
-            query()->where('nombres', 'LIKE', "%{$searchTerm}%") 
+            query()
+            ->where('idEmpresa', '=', $data["idEmpresa"]) 
+            ->where('nombres', 'LIKE', "%{$searchTerm}%") 
             ->orWhere('apellidos', 'LIKE', "%{$searchTerm}%")
             ->select("id", "nombres", "apellidos", "idDocumento")
             ->limit(10)
@@ -62,6 +83,7 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.foto' => '',
             'data.nombres' => '',
@@ -97,6 +119,10 @@ class CustomerController extends Controller
         //     'mensaje' => 'Se ha guardado',
         //     'clientes' => "hey culooooooooooooooooooooooooooooooooooooooo"
         // ], 201);
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Clientes", ["Guardar"]);
+
 
         \DB::transaction(function() use($datos)
         {
@@ -330,6 +356,7 @@ class CustomerController extends Controller
                     "tipoVivienda" => $datos["tipoVivienda"],
                     "tiempoEnVivienda" => $datos["tiempoEnVivienda"],
                     "referidoPor" => $datos["referidoPor"],
+                    "idEmpresa" => $datos["usuario"]["idEmpresa"],
                     "idContacto" => $contacto->id,
                     "idDireccion" => $direccion->id,
                     "idTrabajo" => $trabajo->id,

@@ -11,5 +11,6 @@ class Loansetting extends Model
         "garantia", 
         "gasto", 
         "desembolso", 
+        "idEmpresa", 
     ];
 }

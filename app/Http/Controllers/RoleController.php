@@ -15,9 +15,21 @@ class RoleController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Roles", ["Ver"]);
+        
+
         return Response::json([
             "mensaje" => "",
-            "roles" => \App\Http\Resources\RoleResource::collection(Role::take(20)->get()),
+            "roles" => \App\Http\Resources\RoleResource::collection(Role::where("idEmpresa", $data["idEmpresa"])->take(20)->get()),
             "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get())
         ], 201);
     }
@@ -41,14 +53,18 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $data = request()->validate([
+            "data.usuario" => "",
             "data.id" => "",
             "data.descripcion" => "",
             "data.permisos" => "",
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Roles", ["Guardar"]);
+        
 
         $role = Role::updateOrCreate(
-            ["id" => $data["id"]],
+            ["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $data["descripcion"],
             ]
@@ -110,17 +126,22 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
             "data.descripcion" => "",
         ])["data"];
 
-        $role = Role::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Roles", ["Eliminar"]);
+
+        $role = Role::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($role){
+            $role->permisos()->detach();
             $role->delete();
         }
 
         return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
+            "mensaje" => "Se ha eliminado correctamente",
             "rol" => new \App\Http\Resources\RoleResource($role)
         ]);
     }

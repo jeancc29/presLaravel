@@ -24,6 +24,7 @@ class CreateBranchofficesTable extends Migration
             $table->string("gerenteCobro")->nullable();
             $table->boolean("status")->default(1);
             $table->string("foto")->nullable();
+            $table->unsignedInteger("idEmpresa");
             $table->timestamps();
         });
     }

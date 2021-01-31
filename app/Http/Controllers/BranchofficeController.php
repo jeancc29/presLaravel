@@ -15,10 +15,21 @@ class BranchofficeController extends Controller
      */
     public function index()
     {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Sucursales", ["Ver"]);
+
         return Response::json([
             "mensaje" => "",
             // "sucursales" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
-            "sucursales" => \App\Branchoffice::take(50)->get()
+            "sucursales" => \App\Branchoffice::where("nombre", "!=", "Ninguna")->where("idEmpresa", $data["idEmpresa"])->take(50)->get()
         ], 201);
     }
 
@@ -41,6 +52,7 @@ class BranchofficeController extends Controller
     public function store(Request $request)
     {
         $datos = request()->validate([
+            'data.usuario' => '',
             'data.id' => '',
             'data.foto' => '',
             'data.nombreFoto' => '',
@@ -54,6 +66,9 @@ class BranchofficeController extends Controller
             'data.status' => '',
         ])["data"];
 
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Sucursales", ["Guardar"]);
+
         //Cliente
         $fotoPerfil = null;
         if(isset($datos["foto"]))
@@ -62,7 +77,7 @@ class BranchofficeController extends Controller
             $fotoPerfil = $datos["nombreFoto"];
 
         $sucursal = Branchoffice::updateOrCreate(
-            ["id" => $datos["id"]],
+            ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "foto" => $fotoPerfil,
                 "nombre" => $datos["nombre"],
@@ -133,10 +148,14 @@ class BranchofficeController extends Controller
     public function destroy(Branchoffice $branchoffice)
     {
         $data = request()->validate([
+            "data.usuario" => "required",
             "data.id" => "required",
         ])["data"];
 
-        $sucursal = Branchoffice::whereId($data["id"])->first();
+        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data["usuario"], "Sucursales", ["Eliminar"]);
+
+        $sucursal = Branchoffice::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($sucursal != null){
             $sucursal->delete();
 
