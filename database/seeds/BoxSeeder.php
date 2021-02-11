@@ -13,7 +13,7 @@ class BoxSeeder extends Seeder
     {
         // \App\Box::updateOrCreate(
         //     ["descripcion" => "Ninguna"],
-        //     ["descripcion" => "Ninguna", "balanceInicial" => 0],
+        //     ["descripcion" => "Ninguna", "balanceInicial" => 0, "idEmpresa" => 1],
         // );
     }
 }

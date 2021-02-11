@@ -51,7 +51,8 @@ class User extends Authenticatable
 
     public function cajas()
     {
-        return $this->belongsToMany('App\Box', 'box_user', 'idUsuario', 'idCaja')->withPivot('created_at');
+        $cajas = $this->belongsToMany('App\Box', 'box_user', 'idUsuario', 'idCaja')->withPivot('created_at');
+        return $cajas != null ? [] : $cajas;
     }
 
     public function contacto()

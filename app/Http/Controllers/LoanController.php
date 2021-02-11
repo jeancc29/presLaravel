@@ -48,7 +48,7 @@ class LoanController extends Controller
         from loans l 
          inner join customers c on c.id = l.idCliente 
          inner join types t on t.id = l.idTipoAmortizacion 
-         inner join boxes b on b.id = l.idCaja 
+         left join boxes b on b.id = l.idCaja 
         where l.idEmpresa = $idEmpresa
          limit 50 ");
         //  where l.created_at between '{$fechaInicial}' and '{$fechaFinal}' limit 50 ");
@@ -110,8 +110,8 @@ class LoanController extends Controller
             'data.amortizaciones' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data["usuario"], "Prestamos", ["Guardar"]);
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
         
 
         $prestamo = null;
@@ -239,7 +239,7 @@ class LoanController extends Controller
                 
     
         });
-        $prestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
+        $lastPrestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
         $prestamo = \DB::select("select
         l.id,
         (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
@@ -256,13 +256,15 @@ class LoanController extends Controller
         from loans l 
          inner join customers c on c.id = l.idCliente 
          inner join types t on t.id = l.idTipoAmortizacion 
-         inner join boxes b on b.id = l.idCaja
-         where l.id = {$prestamo->id}
+         left join boxes b on b.id = l.idCaja
+         where l.id = {$lastPrestamo->id}
          limit 1 ");
         
         
         return Response::json([
             "mensaje" => "se ha guardado correctamente",
+            "message" => $datos["usuario"]["idEmpresa"], 
+            // "nalga" => "{$lastPrestamo->id}",
             // "datos" => $datos,
             "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null
         ]);
@@ -281,9 +283,8 @@ class LoanController extends Controller
             'data.id' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data["usuario"], "Prestamos", ["Guardar"]);
-
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
 
         $prestamo = \DB::select("select
         l.id,
@@ -302,15 +303,23 @@ class LoanController extends Controller
         from loans l 
          inner join customers c on c.id = l.idCliente 
          inner join types t on t.id = l.idTipoAmortizacion 
-         inner join boxes b on b.id = l.idCaja
+         left join boxes b on b.id = l.idCaja
          left join documents d on d.id = c.idDocumento
          left join contacts co on co.id = c.idContacto
 
-         where l.id = {$datos['id']} and l.idPrestamo = {$datos['usuario']['idEmpresa']}
+         where l.id = {$datos['id']} and l.idEmpresa = {$datos['usuario']['idEmpresa']}
          limit 1 ");
 
+
+        $usuario = \App\User::whereId($datos["usuario"]["id"])->first();
+        $cajas = $usuario->cajas();
+        if(count($cajas) == 0)
+            $cajas = \App\Box::where("idEmpresa", $usuario->idEmpresa)->get();
+
          return Response::json([
-             "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null
+            "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null,
+            "tipos" => \App\Type::where("renglon", "desembolso")->cursor(),
+            "cajas" => $cajas,
          ]);
     }
 

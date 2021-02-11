@@ -29,7 +29,7 @@ class CreateLoansTable extends Migration
             $table->unsignedBigInteger("idCliente");
             $table->unsignedInteger("idTipoPlazo");
             $table->unsignedInteger("idTipoAmortizacion");
-            $table->unsignedBigInteger("idCaja");
+            $table->unsignedBigInteger("idCaja")->nullable();
             $table->unsignedInteger("idCobrador");
             // $table->unsignedInteger("idGasto");
             $table->unsignedInteger("idDesembolso");

@@ -14,7 +14,7 @@ class CreateAmortizationsTable extends Migration
     public function up()
     {
         Schema::create('amortizations', function (Blueprint $table) {
-            $table->increments("id");
+            $table->bigIncrements("id");
             $table->unsignedBigInteger("idPrestamo");
             $table->unsignedInteger("idTipo");
             $table->double("cuota", 20, 2);
