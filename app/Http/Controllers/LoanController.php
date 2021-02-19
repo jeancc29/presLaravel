@@ -161,7 +161,7 @@ class LoanController extends Controller
                     "idCliente" => $datos["cliente"]["id"],
                     "idTipoPlazo" => $datos["tipoPlazo"]["id"],
                     "idTipoAmortizacion" => $datos["tipoAmortizacion"]["id"],
-                    "idCaja" => $datos["caja"]["id"],
+                    "idCaja" => ($datos["caja"] != null) ? $datos["caja"]["id"] : null,
                     // "idCobrador" => $datos["cobrador"]["id"],
                     "idCobrador" => 1,
                     // "idGasto" => $gasto->id,
