@@ -68,3 +68,7 @@ Route::post('/users', 'UserController@index');
 Route::post('/users/login', 'UserController@login');
 Route::post('/users/store', 'UserController@store');
 Route::post('/users/delete', 'UserController@destroy');
+
+Route::post('/pays', 'PayController@index');
+Route::post('/pays/store', 'PayController@store');
+Route::post('/pays/delete', 'PayController@destroy');

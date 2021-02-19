@@ -17,6 +17,7 @@ class CreateAmortizationsTable extends Migration
             $table->bigIncrements("id");
             $table->unsignedBigInteger("idPrestamo");
             $table->unsignedInteger("idTipo");
+            $table->string("numeroCuota");
             $table->double("cuota", 20, 2);
             $table->double("interes", 20, 2);
             $table->double("capital", 20, 2);

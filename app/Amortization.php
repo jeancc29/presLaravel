@@ -8,6 +8,7 @@ class Amortization extends Model
 {
     protected $fillable = [
         "id", 
+        "numeroCuota", 
         "idTipo", 
         "idPrestamo", 
         "cuota", 

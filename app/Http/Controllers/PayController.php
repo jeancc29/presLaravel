@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Pay;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response; 
 
 class PayController extends Controller
 {
@@ -84,7 +85,71 @@ class PayController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.id' => '',
+            'data.idPrestamo' => '',
+            'data.idCliente' => '',
+            'data.monto' => '',
+            'data.descuento' => '',
+            'data.devuelta' => '',
+            'data.comentario' => '',
+            'data.concepto' => '',
+            'data.caja' => '',
+            'data.tipoPago' => '',
+            'data.detallepago' => '',
+            'data.fecha' => '',
+            'data.capitalPagado' => '',
+            'data.interesPagado' => '',
+            'data.numeroCuotaPagada' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Pagos", ["Guardar"]);
+
+        $data = Pay::updateOrCreate(
+            ["id" => $datos["id"]],
+            [
+                "idUsuario" => $datos["usuario"]["id"],
+                "idEmpresa" => $datos["usuario"]["idEmpresa"],
+                "idTipoPago" => $datos["tipoPago"]["id"],
+                "idCliente" => $datos["idCliente"],
+                "idPrestamo" => $datos["idPrestamo"],
+                "monto" => $datos["monto"],
+                "descuento" => $datos["descuento"],
+                "devuelta" => $datos["devuelta"],
+                "comentario" => $datos["comentario"],
+                "concepto" => $datos["concepto"],
+                "fecha" => $datos["fecha"],
+            ]
+        );
+
+        foreach ($datos["detallepago"] as $detalle) {
+            $detalle = \App\Paydetail::updateOrCreate(
+                ["idPago" => $data->id, "idAmortizacion" => $detalle["idAmortizacion"]],
+                [
+                    "capital" => $detalle["capital"],
+                    "interes" => $detalle["interes"],
+                    "mora" => $detalle["mora"],
+                ]
+            );
+        }
+
+        $prestamo = \App\Loan::whereId($data->idPrestamo)->first();
+        $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["capitalPagado"];
+        $prestamo->interesPendiente = $prestamo->interesPendiente - $datos["interesPagado"];
+        $prestamo->numeroCuotasPagadas = $datos["numeroCuotaPagada"];
+        $prestamo->fechaProximoPago = \App\Loan::fechaProximoPago($prestamo->id);
+        if($prestamo->capitalPendiente <= 0 && $prestamo->interesPendiente)
+            $prestamo->status = 2;
+
+        $prestamo->save();
+        $prestamo->amortizaciones = \App\Loan::amortizaciones($prestamo->id);
+
+        return Response::json([
+            "data" => Pay::customFirst($data->id),
+            "prestamo" => $prestamo
+        ]);
     }
 
     /**

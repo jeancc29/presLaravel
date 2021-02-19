@@ -56,12 +56,14 @@ class UserController extends Controller
                 "message" => "Contraseña incorrecta"
             ], 404);
 
-        
+            $empresa = \App\Company::whereId($usuario->idEmpresa)->first();
+            $moneda = $empresa->moneda;
 
         return Response::json([
             "mensaje" => "Datos correctos",
             "usuario" => new \App\Http\Resources\UserResource($usuario),
-            "apiKey" => \App\Classes\Helper::jwtEncode($usuario->usuario)
+            "apiKey" => \App\Classes\Helper::jwtEncode($usuario->usuario),
+            "moneda" => $moneda
         ]);
     }
 

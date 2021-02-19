@@ -32,26 +32,27 @@ class LoanController extends Controller
         $fecha = getdate();
         $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
         $fechaFinal = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 23:50:00';
-        $prestamos = \DB::select("select
-        l.id,
-        (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
-        l.monto,
-        l.porcentajeInteres,
-        (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
-        l.numeroCuotas,
-        l.monto as balancePendiente,
-        l.monto as capitalPendiente,
-        l.created_at fechaProximoPago,
-        (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
-        l.codigo codigo,
-        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
-        from loans l 
-         inner join customers c on c.id = l.idCliente 
-         inner join types t on t.id = l.idTipoAmortizacion 
-         left join boxes b on b.id = l.idCaja 
-        where l.idEmpresa = $idEmpresa
-         limit 50 ");
+        // $prestamos = \DB::select("select
+        // l.id,
+        // (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
+        // l.monto,
+        // l.porcentajeInteres,
+        // (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
+        // l.numeroCuotas,
+        // l.monto as balancePendiente,
+        // l.monto as capitalPendiente,
+        // l.created_at fechaProximoPago,
+        // (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
+        // l.codigo codigo,
+        // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
+        // from loans l 
+        //  inner join customers c on c.id = l.idCliente 
+        //  inner join types t on t.id = l.idTipoAmortizacion 
+        //  left join boxes b on b.id = l.idCaja 
+        // where l.idEmpresa = $idEmpresa
+        //  limit 50 ");
         //  where l.created_at between '{$fechaInicial}' and '{$fechaFinal}' limit 50 ");
+        $prestamos = Loan::customAll($idEmpresa);
 
         return Response::json([
             "prestamos" => $prestamos,
@@ -101,6 +102,9 @@ class LoanController extends Controller
             'data.diasExcluidos' => '',
             'data.porcentajeMora' => '',
             'data.diasGracia' => '',
+            'data.capitalPendiente' => '',
+            'data.interesPendiente' => '',
+            'data.fechaProximoPago' => '',
             'data.cobrador' => '',
             'data.gastoPrestamo' => '',
             'data.garante' => '',
@@ -148,6 +152,9 @@ class LoanController extends Controller
                     "codigo" => $datos["codigo"],
                     "porcentajeMora" => $datos["porcentajeMora"],
                     "diasGracia" => $datos["diasGracia"],
+                    "capitalPendiente" => $datos["capitalPendiente"],
+                    "interesPendiente" => $datos["interesPendiente"],
+                    "fechaProximoPago" => $datos["fechaProximoPago"],
                     // "idUsuario" => $datos["usuario"]["id"],
                     "idEmpresa" => $datos["usuario"]["idEmpresa"],
                     "idUsuario" => $datos["usuario"]["id"],
@@ -195,6 +202,7 @@ class LoanController extends Controller
                         [
                             "idPrestamo" => $prestamo->id,
                             "idTipo" => $amortizacion["tipo"]["id"],
+                            "numeroCuota" => $amortizacion["numeroCuota"],
                             "cuota" => $amortizacion["cuota"],
                             "interes" => $amortizacion["interes"],
                             "capital" => $amortizacion["capital"],
@@ -240,25 +248,26 @@ class LoanController extends Controller
     
         });
         $lastPrestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
-        $prestamo = \DB::select("select
-        l.id,
-        (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
-        l.monto,
-        l.porcentajeInteres,
-        (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
-        l.numeroCuotas,
-        l.monto as balancePendiente,
-        l.monto as capitalPendiente,
-        l.created_at fechaProximoPago,
-        (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
-        l.codigo codigo,
-        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
-        from loans l 
-         inner join customers c on c.id = l.idCliente 
-         inner join types t on t.id = l.idTipoAmortizacion 
-         left join boxes b on b.id = l.idCaja
-         where l.id = {$lastPrestamo->id}
-         limit 1 ");
+        // $prestamo = \DB::select("select
+        // l.id,
+        // (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
+        // l.monto,
+        // l.porcentajeInteres,
+        // (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
+        // l.numeroCuotas,
+        // l.monto as balancePendiente,
+        // l.monto as capitalPendiente,
+        // l.created_at fechaProximoPago,
+        // (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
+        // l.codigo codigo,
+        // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
+        // from loans l 
+        //  inner join customers c on c.id = l.idCliente 
+        //  inner join types t on t.id = l.idTipoAmortizacion 
+        //  left join boxes b on b.id = l.idCaja
+        //  where l.id = {$lastPrestamo->id}
+        //  limit 1 ");
+        $prestamo = Loan::customFirst($lastPrestamo->id);
         
         
         return Response::json([
@@ -266,7 +275,7 @@ class LoanController extends Controller
             "message" => $datos["usuario"]["idEmpresa"], 
             // "nalga" => "{$lastPrestamo->id}",
             // "datos" => $datos,
-            "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null
+            "prestamo" => $prestamo
         ]);
     }
 
@@ -286,29 +295,31 @@ class LoanController extends Controller
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
 
-        $prestamo = \DB::select("select
-        l.id,
-        (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto, 'documento', (SELECT JSON_OBJECT('id', d.id, 'descripcion', d.descripcion)), 'contacto', (SELECT JSON_OBJECT('id', co.id, 'celular', co.celular, 'correo', co.correo)))) as cliente,
-        l.monto,
-        l.porcentajeInteres,
-        (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
-        l.numeroCuotas,
-        l.monto as balancePendiente,
-        l.monto as capitalPendiente,
-        l.created_at fechaProximoPago,
-        (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
-        l.codigo codigo,
-        (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja,
-        (select JSON_ARRAYAGG(JSON_OBJECT('id', amortizations.id, 'capital', amortizations.capital, 'interes', amortizations.interes, 'cuota', amortizations.cuota, 'fecha', amortizations.fecha)) from amortizations where amortizations.idPrestamo = l.id) as amortizaciones
-        from loans l 
-         inner join customers c on c.id = l.idCliente 
-         inner join types t on t.id = l.idTipoAmortizacion 
-         left join boxes b on b.id = l.idCaja
-         left join documents d on d.id = c.idDocumento
-         left join contacts co on co.id = c.idContacto
+        // $prestamo = \DB::select("select
+        // l.id,
+        // (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto, 'documento', (SELECT JSON_OBJECT('id', d.id, 'descripcion', d.descripcion)), 'contacto', (SELECT JSON_OBJECT('id', co.id, 'celular', co.celular, 'correo', co.correo)))) as cliente,
+        // l.monto,
+        // l.porcentajeInteres,
+        // (select cuota from amortizations where amortizations.idPrestamo = l.id limit 1) as cuota,
+        // l.numeroCuotas,
+        // l.monto as balancePendiente,
+        // l.monto as capitalPendiente,
+        // l.created_at fechaProximoPago,
+        // (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
+        // l.codigo codigo,
+        // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja,
+        // (select JSON_ARRAYAGG(JSON_OBJECT('id', amortizations.id, 'capital', amortizations.capital, 'interes', amortizations.interes, 'cuota', amortizations.cuota, 'fecha', amortizations.fecha)) from amortizations where amortizations.idPrestamo = l.id) as amortizaciones
+        // from loans l 
+        //  inner join customers c on c.id = l.idCliente 
+        //  inner join types t on t.id = l.idTipoAmortizacion 
+        //  left join boxes b on b.id = l.idCaja
+        //  left join documents d on d.id = c.idDocumento
+        //  left join contacts co on co.id = c.idContacto
 
-         where l.id = {$datos['id']} and l.idEmpresa = {$datos['usuario']['idEmpresa']}
-         limit 1 ");
+        //  where l.id = {$datos['id']} and l.idEmpresa = {$datos['usuario']['idEmpresa']}
+        //  limit 1 ");
+
+        $prestamo = Loan::customFirstAmortizaciones($datos['id']);
 
 
         $usuario = \App\User::whereId($datos["usuario"]["id"])->first();
@@ -317,7 +328,7 @@ class LoanController extends Controller
             $cajas = \App\Box::where("idEmpresa", $usuario->idEmpresa)->get();
 
          return Response::json([
-            "prestamo" => (count($prestamo) > 0) ? $prestamo[0] : null,
+            "prestamo" => $prestamo,
             "tipos" => \App\Type::where("renglon", "desembolso")->cursor(),
             "cajas" => $cajas,
          ]);
