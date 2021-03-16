@@ -63,4 +63,29 @@ class Helper{
         return count($datos) > 0 ? true : Response::json(["message" => "No tiene permiso para realizar esta acción"], 404);;
     }
 
+    public static function toNegative($number){
+        return abs($number) * -1;
+    }
+
+    public static function stdClassToArray($stdClass)
+    {
+        return json_decode(json_encode($stdClass), true);
+    }
+
+    public static function validateMonto($caja, $monto = 0){
+        // if($caja == null)
+        //     return true;
+        
+        return 
+        $caja["balance"] < abs($monto)
+        ?
+        abort(404, "La caja no tiene monto suficiente.")
+        // Response::json([
+        //     "message" => "La caja no tiene monto suficiente.",
+        // ], 404)
+        :
+        true
+        ;
+    }
+
 }

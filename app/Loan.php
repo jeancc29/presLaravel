@@ -19,6 +19,7 @@ class Loan extends Model
         // "idGarante", 
         "idDesembolso",
         "monto", 
+        "montoInteres", 
         "porcentajeInteres", 
         "porcentajeInteresAnual", 
         "numeroCuotas", 
@@ -55,12 +56,50 @@ class Loan extends Model
             (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = l.idTipoAmortizacion) as tipoAmortizacion,
             l.codigo codigo,
             l.status,
-            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja
+            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
+            (
+                SELECT
+                COUNT(IF(l.diasGracia > a.diasAtrasados, null, a.id))
+                FROM (
+                    SELECT
+                    a.id,
+                    IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
+                    a.numeroCuota,
+                    a.capital,
+                    a.interes,
+                    a.cuota,
+                    a.capitalRestante,
+                    a.interesRestante,
+                    a.capitalRestante + a.interesRestante as cuotaRestante,
+                    a.fecha,
+                    a.diasAtrasados,
+                    a.mora
+                    FROM   (
+                            SELECT
+                                a.id,
+                                a.numeroCuota,
+                                a.capital,
+                                a.interes,
+                                IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
+                                IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
+                                IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
+                                a.cuota,
+                                a.fecha,
+                                DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+                            FROM (SELECT * from amortizations where amortizations.idPrestamo = l.id AND DATEDIFF(CURDATE(), amortizations.fecha) >= 0) as a
+                            LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                            WHERE a.idPrestamo = l.id
+                            GROUP BY a.id
+                        ) AS a
+                    order by a.id
+                ) AS a
+                WHERE a.pagada = 0 AND a.diasAtrasados >= 0
+            ) as cuotasAtrasadas
         FROM loans l 
         INNER JOIN customers c ON c.id = l.idCliente 
         INNER JOIN types t ON t.id = l.idTipoAmortizacion 
         LEFT JOIN boxes b ON b.id = l.idCaja 
-        WHERE l.idEmpresa = $idEmpresa
+        WHERE l.idEmpresa = $idEmpresa AND l.status = 1
         LIMIT $limit ");
     }
 
@@ -93,7 +132,45 @@ class Loan extends Model
             (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = l.idTipoAmortizacion) as tipoAmortizacion,
             l.codigo codigo,
             l.status,
-            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja
+            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
+            (
+                SELECT
+                COUNT(IF(l.diasGracia > a.diasAtrasados, null, a.id))
+                FROM (
+                    SELECT
+                    a.id,
+                    IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
+                    a.numeroCuota,
+                    a.capital,
+                    a.interes,
+                    a.cuota,
+                    a.capitalRestante,
+                    a.interesRestante,
+                    a.capitalRestante + a.interesRestante as cuotaRestante,
+                    a.fecha,
+                    a.diasAtrasados,
+                    a.mora
+                    FROM   (
+                            SELECT
+                                a.id,
+                                a.numeroCuota,
+                                a.capital,
+                                a.interes,
+                                IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
+                                IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
+                                IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
+                                a.cuota,
+                                a.fecha,
+                                DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+                            FROM (SELECT * from amortizations where amortizations.idPrestamo = l.id AND DATEDIFF(CURDATE(), amortizations.fecha) >= 0) as a
+                            LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                            WHERE a.idPrestamo = l.id
+                            GROUP BY a.id
+                        ) AS a
+                    order by a.id
+                ) AS a
+                WHERE a.pagada = 0 AND a.diasAtrasados >= 0
+            ) as cuotasAtrasadas
         FROM loans l 
         INNER JOIN customers c ON c.id = l.idCliente 
         INNER JOIN types t ON t.id = l.idTipoAmortizacion 

@@ -15,21 +15,153 @@ class BoxController extends Controller
      */
     public function index()
     {
-        $data = request()->validate([
+        $datos = request()->validate([
             'data.id' => '',
             'data.nombres' => '',
             'data.usuario' => '',
             'data.apiKey' => '',
             'data.idEmpresa' => '',
+            'data.idCaja' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data, "Cajas", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Cajas", ["Ver"]);
 
         return Response::json([
             "mensaje" => "",
-            "cajas" => Box::where("descripcion", '!=', "Ninguna")->where("idEmpresa", $data["idEmpresa"])->get(),
+            "cajas" => Box::where("descripcion", '!=', "Ninguna")->where("idEmpresa", $datos["idEmpresa"])->get(),
+            "caja" => (isset($datos["idCaja"])) ? Box::customFirst($datos["idCaja"]) : null
         ], 201);
+    }
+
+    public function indexTransacciones()
+    {
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        // \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Cajas", ["Ver cierres"]);
+
+        $usuario = \App\User::whereId($datos["id"])->first();
+        $cajas = $usuario->cajas;
+
+        //Si el usuario tiene cajas pues obtenemos nuevamente esas cajas pero con sus respectivos transacciones
+        //de lo contrario pues buscamos todas las cajas de la empresa y las retornamos todas pero solo la primera caja
+        //va a tener sus transacciones
+        if(count($cajas) > 0){
+            $idCajas = $cajas->map(function($d){
+                $d->id;
+            });
+            $cajas = Box::customAll($idCajas);
+        }else{
+            $cajas = Box::where("descripcion", '!=', "Ninguna")->where("idEmpresa", $datos["idEmpresa"])->get();
+            if(count($cajas) > 0){
+                $cajas[0]->transacciones = Box::transacciones($cajas[0]->id);
+                $cajas[0]->cierres = Box::cierres($cajas[0]->id);
+            }
+        }
+        
+
+        return Response::json([
+            "mensaje" => "",
+            "cajas" => $cajas
+        ], 201);
+    }
+
+    public function transacciones()
+    {
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.idCaja' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Cajas", ["Ver cierres"]);
+
+        return Response::json([
+            "mensaje" => "",
+            "transacciones" => Box::transacciones($datos["idCaja"]),
+            "cierres" => Box::cierres($datos["idCaja"])
+        ], 201);
+    }
+
+    public function close(){
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.caja' => '',
+            'data.comentario' => '',
+        ])["data"];
+
+        /// VALIDATE apiKEY AND permissions
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Cajas", ["Realizar cierres"]);
+
+        /// VALIDATE BOX
+        $caja = Box::whereId($datos["caja"]["id"])->first();
+        if($caja == null)
+            abort(404, "La caja no existe");
+
+        //VALIDATE TRANSACTIONS
+        $transaccionesSinCerrar = $caja->transactions()->whereStatus(1)->get();
+         if(count($transaccionesSinCerrar) == 0)
+            abort(404, "La caja no tiene transacciones");   
+
+        
+
+        /// CREATE CLOSURE AND SAVE HIS TRANSACTIONS
+        $cierre = \App\Closure::create([
+            "idUsuario" => $datos["usuario"]["id"],
+            "idEmpresa" => $datos["usuario"]["idEmpresa"],
+            "idCaja" => $caja->id, 
+            "monto" => $caja->balance, 
+            "comentario" => $datos["comentario"],
+            "montoCheques" => 0,
+            "montoTarjetas" => 0,
+            "montoTransferencias" => 0
+        ]);
+        $transaccionesToSave = $transaccionesSinCerrar->map(function($d) use($cierre){
+            return ["idTransaccion" => $d->id, "idCierre" => $cierre->id];
+        });
+        $cierre->transactions()->attach($transaccionesToSave);
+
+        ///CHANGE STATUS OF TRANSACTIONS TO CERRADA
+        $caja->transactions()->whereStatus(1)->update(["status" => 2]);
+
+        /// MAKE AUTOMATIC TRANSACTIONS Balance Inciial
+        $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Balance inicial"])->first();
+        \App\Transaction::make($datos["usuario"], $datos["caja"], $datos["caja"]["balanceInicial"], $tipo, $datos["caja"]["id"], $datos["comentario"]);
+    
+        //SET NEW BALANCE TO BOX
+        $caja->balance = $datos["caja"]["balanceInicial"];
+        $caja->save();
+        $cierre->usuario = $datos["usuario"];
+
+        return Response::json([
+            "message" => "La caja se ha cerrado correctamente",
+            "transacciones" => Box::transacciones($caja->id),
+            "data" => $cierre,
+            "caja" => $caja
+        ]);
+    }
+
+    public function showClosure(){
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.cierre' => '',
+        ])["data"];
+
+        /// VALIDATE apiKEY AND permissions
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Cajas", ["Ver cierres"]);
+
+        return Response::json([
+            "message" => "La caja se ha cerrado correctamente",
+            "transacciones" => \App\Closure::transacciones($datos["cierre"]["id"]),
+        ]);
     }
 
     /**
@@ -88,6 +220,7 @@ class BoxController extends Controller
             "data.id" => "required",
             "data.balanceInicial" => "",
             "data.descripcion" => "",
+            "data.comentario" => "",
         ])["data"];
 
         \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
@@ -97,6 +230,9 @@ class BoxController extends Controller
         if($caja != null){
             $caja->balanceInicial = $data["balanceInicial"];
             $caja->save();
+            $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Balance inicial"])->first();
+            $tipo = \App\Classes\Helper::stdClassToArray($tipo);
+            \App\Transaction::make($data["usuario"], $caja, $data["balanceInicial"], $tipo, null, $data["comentario"]);
         }else{
             return Response::json([
                 "message" => "La caja no existe"

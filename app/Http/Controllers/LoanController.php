@@ -94,6 +94,7 @@ class LoanController extends Controller
             'data.monto' => '',
             'data.porcentajeInteres' => '',
             'data.porcentajeInteresAnual' => '',
+            'data.montoInteres' => '',
             'data.numeroCuotas' => '',
             'data.fecha' => '',
             'data.fechaPrimerPago' => '',
@@ -116,7 +117,11 @@ class LoanController extends Controller
 
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
-        
+        \App\Box::validateMonto($datos["caja"], $datos["monto"]);
+
+        // return Response::json([
+        //     "message" => "La caja no tiene monto suficiente. {$datos["caja"]["balance"]}",
+        // ], 404);
 
         $prestamo = null;
 
@@ -146,6 +151,7 @@ class LoanController extends Controller
                     "monto" => $datos["monto"],
                     "porcentajeInteres" => $datos["porcentajeInteres"],
                     "porcentajeInteresAnual" => $datos["porcentajeInteresAnual"],
+                    "montoInteres" => $datos["montoInteres"],
                     "numeroCuotas" => $datos["numeroCuotas"],
                     "fecha" => $datos["fecha"],
                     "fechaPrimerPago" => $datos["fechaPrimerPago"],
@@ -244,8 +250,8 @@ class LoanController extends Controller
                         );
                 }
 
-                
-    
+                $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Préstamo", "renglon" => "transaccion"])->first());
+                \App\Transaction::make($datos["usuario"], $datos["caja"], $prestamo->monto, $tipo, $prestamo->id, "Desembolso de Préstamo");
         });
         $lastPrestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
         // $prestamo = \DB::select("select
@@ -323,7 +329,7 @@ class LoanController extends Controller
 
 
         $usuario = \App\User::whereId($datos["usuario"]["id"])->first();
-        $cajas = $usuario->cajas();
+        $cajas = $usuario->cajas;
         if(count($cajas) == 0)
             $cajas = \App\Box::where("idEmpresa", $usuario->idEmpresa)->get();
 
@@ -365,6 +371,54 @@ class LoanController extends Controller
      */
     public function destroy(Loan $loan)
     {
-        //
+        $datos = request()->validate([
+            "data.usuario" => "required",
+            "data.id" => "required",
+            "data.eliminarPagos" => "required",
+            "data.comentario" => "",
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Eliminar"]);
+
+        $data = Loan::where(["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
+        if($data != null){
+            $data->status = 0;
+            $data->save();
+            $this->deleteTransaction($data->id, $datos["comentario"]);
+            if($datos["eliminarPagos"] == 1)
+                $this->deletePagos($data->id);
+
+
+            return Response::json([
+                "mensaje" => "El préstamo se ha eliminado correctamente",
+                "data" => $data
+            ]);
+        }else{
+            \abort(402, "El préstamo no existe");
+        }
+    }
+
+    public function deletePagos($idPrestamo){
+        $pagos = \App\Pay::where("idPrestamo", $idPrestamo)->get();
+        $idPagos = $pagos->map(function($data){
+            return $data->id;
+        });
+
+        $idPagoString = implode(", ", $idPagos);
+        \DB::select("update pays set status = 0 where id in($idPagoString)");
+        foreach ($idPagos as $id) {
+            $this->deleteTransactionPago($id);
+        }
+    }
+
+    public function deleteTransaction($idReferencia, $comentario = null){
+        $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Préstamo"])->first();
+        \App\Transaction::cancel($tipo, $idReferencia, $comentario);
+    }
+
+    public function deleteTransactionPago($idReferencia){
+        $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Pago"])->first();
+        \App\Transaction::cancel($tipo, $idReferencia);
     }
 }

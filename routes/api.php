@@ -34,6 +34,10 @@ Route::post('/boxes', 'BoxController@index');
 Route::post('/boxes/store', 'BoxController@store');
 Route::post('/boxes/open', 'BoxController@abrirCaja');
 Route::post('/boxes/delete', 'BoxController@destroy');
+Route::post('/boxes/indexTransacciones', 'BoxController@indexTransacciones')->name("boxes.indexTransacciones");
+Route::post('/boxes/transacciones', 'BoxController@transacciones');
+Route::post('/boxes/close', 'BoxController@close');
+Route::post('/boxes/showClosure', 'BoxController@showClosure');
 
 Route::post('/banks', 'BankController@index');
 Route::post('/banks/store', 'BankController@store');
@@ -72,3 +76,5 @@ Route::post('/users/delete', 'UserController@destroy');
 Route::post('/pays', 'PayController@index');
 Route::post('/pays/store', 'PayController@store');
 Route::post('/pays/delete', 'PayController@destroy');
+
+Route::post('/dashboard', 'DashBoardController@index');

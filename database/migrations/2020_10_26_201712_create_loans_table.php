@@ -18,12 +18,13 @@ class CreateLoansTable extends Migration
             $table->decimal("monto", 20, 2);
             $table->double("porcentajeInteres", 10, 2);
             $table->double("porcentajeInteresAnual", 10, 2);
+            $table->decimal("montoInteres", 20, 2)->default(0);
             $table->integer("numeroCuotas");
             $table->date("fecha");
             $table->date("fechaPrimerPago");
             $table->string("codigo")->nullable();
             $table->double("porcentajeMora", 5, 2);
-            $table->integer("diasGracia");
+            $table->integer("diasGracia")->default(0);
             $table->decimal("capitalPendiente", 20, 2)->default(0);
             $table->decimal("interesPendiente", 20, 2)->default(0);
             $table->integer("numeroCuotasPagadas")->default(0);

@@ -16,7 +16,8 @@ class CreateBoxesTable extends Migration
         Schema::create('boxes', function (Blueprint $table) {
             $table->bigIncrements("id");
             $table->string("descripcion");
-            $table->double("balanceInicial")->default(0);
+            $table->decimal("balanceInicial", 20, 2)->default(0);
+            $table->decimal("balance", 20, 2)->default(0);
             $table->boolean("validarDesgloseEfectivo")->default(0);
             $table->boolean("validarDesgloseCheques")->default(0);
             $table->boolean("validarDesgloseTarjetas")->default(0);
@@ -24,6 +25,7 @@ class CreateBoxesTable extends Migration
             $table->unsignedInteger("idEmpresa");
             
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -34,6 +36,7 @@ class CreateBoxesTable extends Migration
      */
     public function down()
     {
+        $table->dropSoftDeletes();
         Schema::dropIfExists('boxes');
     }
 }

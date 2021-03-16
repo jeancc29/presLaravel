@@ -81,6 +81,16 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Cuota vencida"], ["renglon" => "mora"]);
         \App\Type::updateOrCreate(["descripcion" => "Capital vencido"], ["renglon" => "mora"]);
 
-
+        \App\Type::updateOrCreate(["descripcion" => "Balance inicial"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Pago"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Anulación pago"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Préstamo"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Cancelación préstamo"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Ajuste capital"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Anulación ajuste capital"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Ajuste caja"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Gasto"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Anulación caja"], ["renglon" => "transaccion"]);
+        \App\Type::updateOrCreate(["descripcion" => "Transferencia entre cajas"], ["renglon" => "transaccion"]);
     }
 }

@@ -140,15 +140,21 @@ class PayController extends Controller
         $prestamo->interesPendiente = $prestamo->interesPendiente - $datos["interesPagado"];
         $prestamo->numeroCuotasPagadas = $datos["numeroCuotaPagada"];
         $prestamo->fechaProximoPago = \App\Loan::fechaProximoPago($prestamo->id);
-        if($prestamo->capitalPendiente <= 0 && $prestamo->interesPendiente)
+        if($prestamo->capitalPendiente <= 0 && $prestamo->interesPendiente <= 0)
             $prestamo->status = 2;
 
         $prestamo->save();
         $prestamo->amortizaciones = \App\Loan::amortizaciones($prestamo->id);
 
+        $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Pago", "renglon" => "transaccion"])->first());
+        \App\Transaction::make($datos["usuario"], $datos["caja"], $data->monto, $tipo, $data->id, $datos["concepto"]);
+
         return Response::json([
             "data" => Pay::customFirst($data->id),
-            "prestamo" => $prestamo
+            "prestamo" => $prestamo,
+            "capitalPendiente" => $prestamo->capitalPendiente,
+            "interesPendiente" => $prestamo->interesPendiente,
+            "status" => $prestamo->status,
         ]);
     }
 
