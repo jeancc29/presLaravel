@@ -26,10 +26,7 @@ class Transaction extends Model
 
             
         $monto = (Transaction::isSum($tipo, $monto)) ? abs($monto) : \App\Classes\Helper::toNegative($monto);
-        if($monto < 0 && $caja["balance"] < abs($monto))
-            return Response::json([
-                "message" => "La caja no tiene monto suficiente",
-            ], 404);
+        
         
         $arrayOfData = [
             "idEmpresa" => $usuario["idEmpresa"],
@@ -44,7 +41,35 @@ class Transaction extends Model
         if($tipoPago != null)
             $arrayOfData["idTipoPago"] = $tipoPago["id"];
 
-        $t = Transaction::create($arrayOfData);
+        if($tipo["descripcion"] == "Balance inicial" || $tipo["descripcion"] == "Ajuste caja" || $tipo["descripcion"] == "Transferencia entre cajas"){
+            $t = Transaction::create($arrayOfData);
+            \App\Box::updateBalance($t->idCaja);
+            return;
+        }      
+
+        /// Si la transaccion existe pues validamos de que esta no este cerrada para poderla editar, de lo contrario pues no se
+        /// podrá editar la transacccion
+        if($tipo["descripcion"] != "Balance inicial" && $tipo["descripcion"] != "Ajuste caja"){
+            $t = Transaction::where(["idReferencia" => $idReferencia, "idTipo" => $tipo["id"]])->first();
+            if($t != null){
+                if($t->status == 2){
+                    abort(402, "La caja ya ha sido cerrada");
+                    return;
+                }
+            }  
+        }  
+
+        // $t = Transaction::create($arrayOfData);
+        if($monto < 0 && $caja["balance"] < abs($monto)){
+            abort(402, "La caja no tiene monto suficiente");
+            return;
+        }
+        
+
+        $t = Transaction::updateOrCreate(
+            ["idReferencia" => $idReferencia, "idTipo" => $tipo["id"]],
+            $arrayOfData
+        );
         // $caja = \App\Box::whereId($caja["id"])->first();
         // $caja->balance += $monto;
         // $caja->save();
@@ -72,12 +97,10 @@ class Transaction extends Model
             case 'Gasto':
                 $isSum = false;
                 break;
-            case 'Transferencia entre cajas':
-                $isSum = false;
-                break;
             
             default:
                 # code...
+                $isSum = ($monto > 0) ? true : false;
                 break;
         }
         return $isSum;
@@ -88,6 +111,11 @@ class Transaction extends Model
         if($t == null)
             return;
         
+        if($t->status == 2){
+            abort(402, "La caja ya ha sido cerrada, asi que no se puede cancelar la transacción.");
+            return;
+        }
+
         $t->status = 0;
         if($comentario != null)
             $t->comentario = $comentario;

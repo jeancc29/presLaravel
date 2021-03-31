@@ -25,6 +25,8 @@ class CreateLoansTable extends Migration
             $table->string("codigo")->nullable();
             $table->double("porcentajeMora", 5, 2);
             $table->integer("diasGracia")->default(0);
+            $table->decimal("capitalTotal", 20, 2)->default(0);
+            $table->decimal("interesTotal", 20, 2)->default(0);
             $table->decimal("capitalPendiente", 20, 2)->default(0);
             $table->decimal("interesPendiente", 20, 2)->default(0);
             $table->integer("numeroCuotasPagadas")->default(0);

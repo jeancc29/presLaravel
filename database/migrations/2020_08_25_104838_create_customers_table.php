@@ -31,8 +31,9 @@ class CreateCustomersTable extends Migration
             $table->unsignedInteger('idContacto');
             $table->unsignedInteger('idDireccion');
             $table->unsignedInteger('idDocumento');
-            $table->unsignedInteger('idTrabajo');
-            $table->unsignedInteger('idNegocio');
+            $table->unsignedInteger('idTrabajo')->nullable();
+            $table->unsignedInteger('idNegocio')->nullable();
+            $table->unsignedInteger('idTipoSituacionLaboral')->nullable();
             
             $table->timestamps();
         });

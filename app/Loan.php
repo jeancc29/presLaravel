@@ -28,6 +28,8 @@ class Loan extends Model
         "codigo", 
         "porcentajeMora", 
         "diasGracia", 
+        "capitalTotal", 
+        "interesTotal", 
         "capitalPendiente", 
         "interesPendiente", 
         "numeroCuotasPagadas", 
@@ -87,7 +89,9 @@ class Loan extends Model
                                 a.fecha,
                                 DATEDIFF(CURDATE(), a.fecha) diasAtrasados
                             FROM (SELECT * from amortizations where amortizations.idPrestamo = l.id AND DATEDIFF(CURDATE(), amortizations.fecha) >= 0) as a
-                            LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                            LEFT JOIN (
+                                SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = l.id AND pays.status = 1)
+                            ) pd on pd.idAmortizacion = a.id
                             WHERE a.idPrestamo = l.id
                             GROUP BY a.id
                         ) AS a
@@ -119,11 +123,31 @@ class Loan extends Model
         $prestamo = \DB::select("
         SELECT
             l.id,
+            (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion)) as tipoPlazo,
             (SELECT JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
             l.monto,
             l.porcentajeInteres,
+            l.porcentajeInteresAnual,
+            l.montoInteres,
             (select cuota FROM amortizations WHERE amortizations.idPrestamo = l.id LIMIT 1) as cuota,
             l.numeroCuotas,
+            l.fecha,
+            l.fechaPrimerPago,
+            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
+            l.codigo,
+            (
+                SELECT 
+                    JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id', d.id,
+                            'dia', d.dia,
+                            'weekday', d.weekday
+                        )
+                    )
+                FROM days d
+                INNER JOIN daysexcludeds de ON de.idDia = d.id
+                WHERE de.idPrestamo = l.id
+            )AS diasExcluidos,
             0 AS balancePendiente,
             l.capitalPendiente as capitalPendiente,
             l.interesPendiente as interesPendiente,
@@ -132,7 +156,6 @@ class Loan extends Model
             (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = l.idTipoAmortizacion) as tipoAmortizacion,
             l.codigo codigo,
             l.status,
-            (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
             (
                 SELECT
                 COUNT(IF(l.diasGracia > a.diasAtrasados, null, a.id))
@@ -163,7 +186,9 @@ class Loan extends Model
                                 a.fecha,
                                 DATEDIFF(CURDATE(), a.fecha) diasAtrasados
                             FROM (SELECT * from amortizations where amortizations.idPrestamo = l.id AND DATEDIFF(CURDATE(), amortizations.fecha) >= 0) as a
-                            LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                            LEFT JOIN (
+                                SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = l.id AND pays.status = 1)
+                            ) pd on pd.idAmortizacion = a.id
                             WHERE a.idPrestamo = l.id
                             GROUP BY a.id
                         ) AS a
@@ -175,6 +200,7 @@ class Loan extends Model
         INNER JOIN customers c ON c.id = l.idCliente 
         INNER JOIN types t ON t.id = l.idTipoAmortizacion 
         LEFT JOIN boxes b ON b.id = l.idCaja 
+        LEFT JOIN types tp ON tp.id = l.idTipoPlazo
         WHERE l.id = $idPrestamo");
 
         return (count($prestamo) == 0) ? null : $prestamo[0];
@@ -250,7 +276,9 @@ class Loan extends Model
                                             DATEDIFF(CURDATE(), a.fecha) diasAtrasados
                                         FROM amortizations a
                                         INNER JOIN loans l on l.id = a.idPrestamo
-                                        LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                                        LEFT JOIN (
+                                            SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+                                        ) pd on pd.idAmortizacion = a.id
                                         WHERE a.idPrestamo = $idPrestamo
                                         GROUP BY a.id
                                     ) AS a
@@ -303,7 +331,9 @@ class Loan extends Model
                     DATEDIFF(CURDATE(), a.fecha) diasAtrasados
                 FROM amortizations a
                 INNER JOIN loans l on l.id = a.idPrestamo
-                LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                LEFT JOIN (
+                    SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+                ) pd on pd.idAmortizacion = a.id
                 WHERE a.idPrestamo = $idPrestamo
                 GROUP BY a.id
             ) AS a
@@ -368,7 +398,9 @@ class Loan extends Model
                         DATEDIFF(CURDATE(), a.fecha) diasAtrasados
                     FROM amortizations a
                     INNER JOIN loans l on l.id = a.idPrestamo
-                    LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+                    LEFT JOIN (
+                        SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+                    ) pd on pd.idAmortizacion = a.id
                     WHERE a.idPrestamo = $idPrestamo
                     GROUP BY a.id
                 ) AS a
@@ -378,5 +410,118 @@ class Loan extends Model
         ");
 
         return (count($cuota) > 0) ? $cuota[0]->fecha : null;
+    }
+
+    public static function numeroCuotasPagadas($idPrestamo)
+    {
+        //Modelo, foreign key, local key
+        // return $this->hasOne('App\Job', 'id', 'idTrabajo');
+        // \DB::select("
+        // SELECT
+        // IF(a.capital <= 0 AND a.interes <= 0, 'pagada', 'no') as status,
+        // a.capital,
+        // a.interes,
+        // a.fecha,
+        // a.diasAtrasados
+        // FROM   (
+        //         SELECT
+        //             a.id,
+        //             IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capital,
+        //             IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interes,
+        //             (SELECT mora(l.id, a.id)) as mora,
+        //             a.fecha,
+        //             DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+        //         FROM amortizations a
+        //         INNER JOIN loans l on l.id = a.idPrestamo
+        //         LEFT JOIN paydetails pd on pd.idAmortizacion = a.id
+        //         WHERE a.idPrestamo = $this->id
+        //         GROUP BY a.id
+        //     ) AS a
+        // ");
+
+        $cuota = \DB::select("
+        SELECT 
+            COUNT(cuotasPagadas.id) as cuotas
+        FROM (
+            SELECT
+                a.id,
+                IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
+                a.numeroCuota,
+                a.capital,
+                a.interes,
+                a.cuota,
+                a.capitalRestante,
+                a.interesRestante,
+                a.capitalRestante + a.interesRestante as cuotaRestante,
+                a.fecha,
+                a.diasAtrasados,
+                a.mora
+                FROM   (
+                        SELECT
+                            a.id,
+                            a.numeroCuota,
+                            a.capital,
+                            a.interes,
+                            IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
+                            IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
+                            IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
+                            a.cuota,
+                            a.fecha,
+                            DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+                        FROM amortizations a
+                        INNER JOIN loans l on l.id = a.idPrestamo
+                        LEFT JOIN (
+                            SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+                        ) pd on pd.idAmortizacion = a.id
+                        WHERE a.idPrestamo = $idPrestamo
+                        GROUP BY a.id
+                    ) AS a
+                HAVING pagada = 1
+                order by a.id asc 
+            ) AS cuotasPagadas
+        
+        ");
+
+        return (count($cuota) > 0) ? $cuota[0]->cuotas : null;
+    }
+
+    public static function updatePendientes($idPrestamo){
+        $fechaProximoPago = Loan::fechaProximoPago($idPrestamo);
+        $numeroCuotasPagadas = Loan::numeroCuotasPagadas($idPrestamo);
+        $fechaProximoPago = isset($fechaProximoPago) ? "l.fechaProximoPago = '$fechaProximoPago'" : "l.fechaProximoPago = null";
+        \DB::select("
+            UPDATE loans AS l
+            LEFT JOIN (
+                SELECT
+                    SUM(pays.capital) AS capital,
+                    SUM(pays.interes) AS interes,
+                    pays.idPrestamo
+                FROM (
+                    SELECT
+                        SUM(paydetails.capital) AS capital,
+                        SUM(paydetails.interes) AS interes,
+                        pays.idPrestamo
+                    FROM (
+                        SELECT * FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1
+                    ) as pays
+                    INNER JOIN paydetails ON pays.id = paydetails.idPago
+                    GROUP BY pays.idPrestamo
+                    UNION
+                    SELECT 
+                        0 AS capital,
+                        0 AS interes,
+                        $idPrestamo AS interes
+                ) as pays
+                GROUP BY pays.idPrestamo
+            ) pays on l.id = pays.idPrestamo
+            SET 
+                l.capitalPendiente = l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0),
+                l.interesPendiente = l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0),
+                l.numeroCuotasPagadas = $numeroCuotasPagadas,
+                l.status = IF(l.status = 0, l.status, IF(l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0) <= 0 AND l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0) <= 0, 2, 1)),
+                $fechaProximoPago
+            WHERE l.id = $idPrestamo
+        ");
+    
     }
 }

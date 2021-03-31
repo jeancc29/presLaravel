@@ -38,7 +38,8 @@ class Pay extends Model
         INNER JOIN loans l ON l.id = p.idPrestamo 
         INNER JOIN types t ON t.id = p.idTipoPago 
         LEFT JOIN boxes b ON b.id = p.idCaja 
-        WHERE p.idEmpresa = $idEmpresa $queryPrestamo
+        WHERE p.idEmpresa = $idEmpresa AND p.status = 1 $queryPrestamo
+        ORDER BY p.id DESC
         LIMIT $limit ");
     }
 
@@ -74,5 +75,13 @@ class Pay extends Model
         LIMIT 1 ");
 
         return (count($pago) > 0) ? $pago[0] : null;
+    }
+
+    public static function exists($idPrestamo){
+        $data = \DB::select("
+            SELECT COUNT(pays.id) AS pagosRealizados FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1
+        ");
+
+        return ($data[0]->pagosRealizados > 0) ? true : false;
     }
 }

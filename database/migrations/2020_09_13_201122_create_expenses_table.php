@@ -19,7 +19,7 @@ class CreateExpensesTable extends Migration
             $table->string("concepto");
             $table->double("monto", 20);
             $table->text("comentario")->nullable();
-            $table->unsignedBigInteger("idCaja");
+            $table->unsignedBigInteger("idCaja")->nullable();
             $table->unsignedInteger("idTipo"); //Tipo categoria
             $table->unsignedInteger("idUsuario");
             $table->unsignedInteger("idEmpresa");

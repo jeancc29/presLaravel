@@ -21,8 +21,14 @@ class Box extends Model
         if($caja == null)
             return true;
         
+        $caja = Box::whereId($caja["id"])->first();
+        if($caja == null){
+            abort(402, "La caja no existe");
+            return;
+        }
+
         return 
-        $caja["balance"] < abs($monto)
+        $caja->balance < abs($monto)
         ?
         abort(404, "La caja no tiene monto suficiente.")
         :
@@ -34,7 +40,11 @@ class Box extends Model
 
         \DB::select("
             UPDATE boxes SET balance = (
-                SELECT SUM(transactions.monto) FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1
+                SELECT
+                    IF(balance.balance IS NOT NULL, balance.balance, 0)
+                FROM (
+                    SELECT SUM(transactions.monto) as balance FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1
+                ) AS balance
             ) 
             WHERE id = $idCaja
         ");
@@ -84,10 +94,11 @@ class Box extends Model
                     FROM
                     closures
                     WHERE closures.idCaja = b.id 
-                    ORDER BY closures.id desc
+                    ORDER BY closures.created_at desc
                 ) c
                 INNER JOIN users u ON u.id = C.idUsuario
                 WHERE c.idCaja = b.id
+                
             ) cierres
             FROM boxes b
             WHERE  b.id in ($idCajas)
@@ -114,10 +125,11 @@ class Box extends Model
                         'tipo', (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion))
                     )
                 ) 
-                FROM transactions AS t 
+                FROM (SELECT * FROM transactions WHERE transactions.idCaja = b.id ORDER BY  transactions.id DESC) AS t 
                 INNER JOIN users u ON u.id = t.idUsuario
                 INNER JOIN types tp ON tp.id = t.idTipo
                 WHERE t.idCaja = b.id AND t.status = 1
+                ORDER BY t.id DESC
             ) transacciones,
             (
                 SELECT
@@ -139,7 +151,7 @@ class Box extends Model
                     FROM
                     closures
                     WHERE closures.idCaja = b.id 
-                    ORDER BY closures.id desc
+                    ORDER BY closures.created_at desc
                 ) c
                 INNER JOIN users u ON u.id = C.idUsuario
                 WHERE c.idCaja = b.id
@@ -178,10 +190,11 @@ class Box extends Model
                     t.created_at,
                     (SELECT JSON_OBJECT('id', u.id, 'nombres', u.nombres, 'apellidos', u.apellidos, 'usuario', u.usuario)) usuario,
                     (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion)) tipo
-            FROM transactions AS t 
+            FROM (SELECT * FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1) AS t 
             INNER JOIN users u ON u.id = t.idUsuario
             INNER JOIN types tp ON tp.id = t.idTipo
             WHERE t.idCaja = $idCaja AND t.status = 1
+            ORDER BY t.id DESC
         ");
     }
 

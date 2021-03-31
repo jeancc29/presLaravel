@@ -92,5 +92,13 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Gasto"], ["renglon" => "transaccion"]);
         \App\Type::updateOrCreate(["descripcion" => "Anulación caja"], ["renglon" => "transaccion"]);
         \App\Type::updateOrCreate(["descripcion" => "Transferencia entre cajas"], ["renglon" => "transaccion"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Empleado"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Desempleado"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Estudiante"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Independiente"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Negocio propio"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Pensionado"], ["renglon" => "situacionLaboral"]);
+        \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "situacionLaboral"]);
     }
 }

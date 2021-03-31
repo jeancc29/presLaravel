@@ -25,6 +25,15 @@ class PermissionSeeder extends Seeder
         \App\Permission::updateOrCreate(["descripcion" => 'Eliminar', "idEntidad" => $entidad->id],);
         // \App\Permission::updateOrCreate(["descripcion" => 'Ver', "idEntidad" => $entidad->id],);
 
+        $entidad = \App\Entity::whereDescripcion("Pagos")->first();
+        \App\Permission::updateOrCreate(["descripcion" => 'Ver', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Guardar', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Eliminar', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Cambiar fecha', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Cambiar caja', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Modificar mora', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Descuento', "idEntidad" => $entidad->id],);
+
         $entidad = \App\Entity::whereDescripcion("Cajas")->first();
         \App\Permission::updateOrCreate(["descripcion" => 'Ver', "idEntidad" => $entidad->id],);
         \App\Permission::updateOrCreate(["descripcion" => 'Abrir', "idEntidad" => $entidad->id],);
@@ -32,6 +41,7 @@ class PermissionSeeder extends Seeder
         \App\Permission::updateOrCreate(["descripcion" => 'Eliminar', "idEntidad" => $entidad->id],);
         \App\Permission::updateOrCreate(["descripcion" => 'Ver cierres', "idEntidad" => $entidad->id],);
         \App\Permission::updateOrCreate(["descripcion" => 'Realizar cierres', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Realizar ajustes', "idEntidad" => $entidad->id],);
         \App\Permission::updateOrCreate(["descripcion" => 'Hacer transferencias', "idEntidad" => $entidad->id],);
 
         $entidad = \App\Entity::whereDescripcion("Bancos")->first();

@@ -60,31 +60,59 @@ class ExpenseController extends Controller
             'data.monto' => '',
             'data.comentario' => '',
             'data.idCaja' => '',
-            'data.idTipo' => '',
+            'data.caja' => '',
+            'data.tipo' => '',
             'data.idUsuario' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
-        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
-        
-        $gasto = Expense::updateOrCreate(
-            ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
-            [
-                "id" => $datos["id"],
-                "fecha" => $datos["fecha"],
-                "concepto" => $datos["concepto"],
-                "monto" => $datos["monto"],
-                "comentario" => $datos["comentario"],
-                "idCaja" => $datos["idCaja"],
-                "idTipo" => $datos["idTipo"],
-                "idUsuario" => $datos["idUsuario"],
-            ]
-        );
 
-        return Response::json([
-            "mensaje" => "Se ha guardado correctamente",
-            "data" => new \App\Http\Resources\ExpenseResource($gasto)
-        ]);
+        // \DB::transaction(function() use($datos){
+        //     // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            
+            
+        // });
+
+        \DB::beginTransaction();
+        try {
+            \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+            if(isset($datos["caja"]))
+                \App\Box::validateMonto($datos["caja"], $datos["monto"]);
+
+            $gasto = Expense::updateOrCreate(
+                ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
+                [
+                    "fecha" => $datos["fecha"],
+                    "concepto" => $datos["concepto"],
+                    "monto" => $datos["monto"],
+                    "comentario" => $datos["comentario"],
+                    "idCaja" => isset($datos["caja"]) ? $datos["caja"]["id"] : null,
+                    "idTipo" => $datos["tipo"]["id"],
+                    "idUsuario" => $datos["usuario"]["id"],
+                    "idEmpresa" => $datos["usuario"]["idEmpresa"],
+                ]
+            );
+
+
+            if(isset($datos["caja"])){
+                $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Gasto", "renglon" => "transaccion"])->first());
+                \App\Transaction::make($datos["usuario"], $datos["caja"], $gasto->monto, $tipo, $gasto->id, $datos["tipo"]["descripcion"]);
+            }
+
+            \DB::commit();
+
+            return Response::json([
+                "mensaje" => "Se ha guardado correctamente",
+                "data" => new \App\Http\Resources\ExpenseResource($gasto)
+            ]);
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            \DB::rollback();
+            abort(402, "Error: {$th->getMessage()}");
+        }
+
+        
+        
     }
 
     /**
@@ -141,18 +169,27 @@ class ExpenseController extends Controller
             'data.idUsuario' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
-        \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+        \DB::transaction(function() use($datos){
+            \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
+    
+            $gasto = Expense::whereId([$datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
+            if($gasto != null){
+                $this->deleteTransaction($gasto->id);
+                $gasto->delete();
+            }
+    
+            return Response::json([
+                "mensaje" => "Se ha eliminado correctamente",
+                "gasto" => $gasto
+            ]);
+        });
+
         
+    }
 
-        $gasto = Expense::whereId([$datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
-        if($gasto != null){
-            $gasto->delete();
-        }
-
-        return Response::json([
-            "mensaje" => "Se ha eliminado correctamente",
-            "gasto" => $gasto
-        ]);
+    public function deleteTransaction($idReferencia, $comentario = null){
+        $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Gasto"])->first();
+        \App\Transaction::cancel($tipo, $idReferencia, $comentario);
     }
 }

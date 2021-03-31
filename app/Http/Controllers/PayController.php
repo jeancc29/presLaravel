@@ -135,26 +135,28 @@ class PayController extends Controller
             );
         }
 
-        $prestamo = \App\Loan::whereId($data->idPrestamo)->first();
-        $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["capitalPagado"];
-        $prestamo->interesPendiente = $prestamo->interesPendiente - $datos["interesPagado"];
-        $prestamo->numeroCuotasPagadas = $datos["numeroCuotaPagada"];
-        $prestamo->fechaProximoPago = \App\Loan::fechaProximoPago($prestamo->id);
-        if($prestamo->capitalPendiente <= 0 && $prestamo->interesPendiente <= 0)
-            $prestamo->status = 2;
+        // $prestamo = \App\Loan::whereId($data->idPrestamo)->first();
+        // $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["capitalPagado"];
+        // $prestamo->interesPendiente = $prestamo->interesPendiente - $datos["interesPagado"];
+        // $prestamo->numeroCuotasPagadas = $datos["numeroCuotaPagada"];
+        // $prestamo->fechaProximoPago = \App\Loan::fechaProximoPago($prestamo->id);
+        // if($prestamo->capitalPendiente <= 0 && $prestamo->interesPendiente <= 0)
+        //     $prestamo->status = 2;
 
-        $prestamo->save();
-        $prestamo->amortizaciones = \App\Loan::amortizaciones($prestamo->id);
+        // $prestamo->save();
+        // $prestamo->amortizaciones = \App\Loan::amortizaciones($prestamo->id);
+
+        \App\Loan::updatePendientes($data->idPrestamo);
 
         $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Pago", "renglon" => "transaccion"])->first());
         \App\Transaction::make($datos["usuario"], $datos["caja"], $data->monto, $tipo, $data->id, $datos["concepto"]);
 
         return Response::json([
             "data" => Pay::customFirst($data->id),
-            "prestamo" => $prestamo,
-            "capitalPendiente" => $prestamo->capitalPendiente,
-            "interesPendiente" => $prestamo->interesPendiente,
-            "status" => $prestamo->status,
+            "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo),
+            // "capitalPendiente" => $prestamo->capitalPendiente,
+            // "interesPendiente" => $prestamo->interesPendiente,
+            // "status" => $prestamo->status,
         ]);
     }
 
@@ -200,6 +202,40 @@ class PayController extends Controller
      */
     public function destroy(Pay $pay)
     {
-        //
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.pago' => '',
+        ])["data"];
+
+        try {
+            \DB::beginTransaction();
+            // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            \App\Classes\Helper::validatePermissions($datos["usuario"], "Pagos", ["Eliminar"]);
+    
+            $data = Pay::whereId([$datos["pago"]["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
+            if($data != null){
+                $data->status = 0;
+                $data->save();
+                $this->deleteTransaction($data->id);
+            }
+
+            \App\Loan::updatePendientes($data->idPrestamo);
+    
+            \DB::commit();
+            return Response::json([
+                "mensaje" => "Se ha eliminado correctamente",
+                "data" => $data,
+                "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo)
+            ]);
+        } catch (\Throwable $th) {
+            //throw $th;
+            \DB::rollback();
+            abort(402, $th->getMessage());
+        }
+    }
+
+    public function deleteTransaction($idReferencia, $comentario = null){
+        $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Pago"])->first();
+        \App\Transaction::cancel($tipo, $idReferencia, $comentario);
     }
 }

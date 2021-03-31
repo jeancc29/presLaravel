@@ -1,5 +1,6 @@
 <?php
-
+// command to execute unit test
+// vendor/bin/phpunit --filter test_adjust_box
 namespace App\Http\Controllers;
 
 use App\Box;
@@ -139,6 +140,7 @@ class BoxController extends Controller
         $caja->balance = $datos["caja"]["balanceInicial"];
         $caja->save();
         $cierre->usuario = $datos["usuario"];
+        $caja->fresh();
 
         return Response::json([
             "message" => "La caja se ha cerrado correctamente",
@@ -162,6 +164,49 @@ class BoxController extends Controller
             "message" => "La caja se ha cerrado correctamente",
             "transacciones" => \App\Closure::transacciones($datos["cierre"]["id"]),
         ]);
+    }
+
+    public function transfer(){
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.cajaDesde' => '',
+            'data.cajaHacia' => '',
+            'data.monto' => '',
+            'data.concepto' => '',
+        ])["data"];
+
+        \DB::beginTransaction();
+        // try {
+            /// VALIDATE apiKEY AND permissions
+            \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            \App\Classes\Helper::validatePermissions($datos["usuario"], "Cajas", ["Hacer transferencias"]);
+
+            /// VALIDATE MONTO OF CAJA
+            Box::validateMonto($datos["cajaDesde"]);
+
+            /// INIT CONCEPT VARs
+            $conceptoDesde = "Transf. Hacia caja {$datos['cajaHacia']['descripcion']}.";
+            $conceptoHasta = "Transf. Desde caja {$datos['cajaDesde']['descripcion']}.";
+
+            ///Adding concat concept parameter to $conceptoDesde var
+            if(isset($datos["concepto"]))
+                $conceptoDesde .= " {$datos['concepto']}";
+
+            /// MAKE AUTOMATIC TRANSACTIONS Balance Inciial
+            $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Transferencia entre cajas"])->first();
+            \App\Transaction::make($datos["usuario"], $datos["cajaDesde"], \App\Classes\Helper::toNegative($datos["monto"]), $tipo, $datos["cajaDesde"]["id"], $conceptoDesde);
+            \App\Transaction::make($datos["usuario"], $datos["cajaHacia"], $datos["monto"], $tipo, $datos["cajaHacia"]["id"], $conceptoHasta);
+
+            \DB::commit();
+
+            return Response::json([
+                "message" => "Se ha guardado correctamente"
+            ]);
+        // } catch (\Throwable $th) {
+        //     //throw $th;
+        //     \DB::rollback();
+        //     abort(402, $th->getMessage());
+        // }
     }
 
     /**
@@ -242,6 +287,51 @@ class BoxController extends Controller
         return Response::json([
             "mensaje" => "Se ha guardado correctamente",
         ]);
+    }
+
+    public function adjust(Request $request)
+    {
+        $data = request()->validate([
+            "data.usuario" => "required",
+            "data.id" => "required",
+            "data.balanceInicial" => "",
+            "data.descripcion" => "",
+            "data.comentario" => "",
+        ])["data"];
+
+        \DB::beginTransaction();
+        try {
+            // \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
+            \App\Classes\Helper::validatePermissions($data["usuario"], "Cajas", ["Realizar ajustes"]);
+
+            if($data["balanceInicial"] < 0){
+                abort(402, "El balanceIncial debe ser mayor o igual que cero");
+            }
+
+            $caja = Box::whereId(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
+            if($caja != null){
+                $caja->balanceInicial = $data["balanceInicial"];
+                $caja->save();
+                $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Ajuste caja"])->first();
+                $tipo = \App\Classes\Helper::stdClassToArray($tipo);
+                //Si el balance es positivo entonces 
+                $calculo = $caja->balance - $data["balanceInicial"];
+                $convertirANegativoOPositivo = ($caja->balance > 0 && $caja->balance > $data["balanceInicial"]) ? \App\Classes\Helper::toNegative($calculo) : abs($calculo);
+                \App\Transaction::make($data["usuario"], $caja, round($convertirANegativoOPositivo, 2), $tipo, null, $data["comentario"]);
+            }else{
+                abort(402, "La caja no existe");
+            }
+
+            \DB::commit();
+
+            return Response::json([
+                "message" => "Se ha guardado correctamente",
+            ]);
+        } catch (\Throwable $th) {
+            //throw $th;
+            \DB::rollback();
+            abort(402, $th->getMessage());
+        }
     }
 
     /**
