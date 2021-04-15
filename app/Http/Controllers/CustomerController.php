@@ -52,7 +52,7 @@ class CustomerController extends Controller
         //     "message" => $data["apiKey"]
         // ], 404);
 
-        // \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Guardar"]);
 
         return Response::json([
@@ -62,9 +62,12 @@ class CustomerController extends Controller
             'data' => \App\Customer::customFirst($datos["idCliente"]),
             'tipos' => \App\Type::whereRenglon("situacionLaboral")->orderBy("id", "desc")->get(),
             'tipoDocumentos' => \App\Type::whereRenglon("documento")->orderBy("id", "desc")->get(),
-            "nacionalidades" => \App\Nationality::all()
+            "nacionalidades" => \App\Nationality::all(),
+            "rutas" => \App\Route::where("idEmpresa", $datos["idEmpresa"])->get(),
         ], 200);
     }
+
+   
 
     public function search()
     {
@@ -82,7 +85,7 @@ class CustomerController extends Controller
             ->where('idEmpresa', '=', $data["idEmpresa"]) 
             ->where('nombres', 'LIKE', "%{$searchTerm}%") 
             ->orWhere('apellidos', 'LIKE', "%{$searchTerm}%")
-            ->select("id", "nombres", "apellidos", "idDocumento")
+            ->select("id", "nombres", "apellidos", "idDocumento", "idRuta")
             ->limit(10)
             ->get();
 
@@ -134,6 +137,7 @@ class CustomerController extends Controller
             'data.negocio' => '',
             'data.referencias' => '',
             'data.tipoSituacionLaboral' => '',
+            'data.ruta' => '',
             // 'abreviatura' => 'required|min:1|max:10',
             // 'estado' => 'required',
             // 'horaCierre' => 'required',
@@ -151,7 +155,7 @@ class CustomerController extends Controller
         
         try {
             \DB::beginTransaction();
-            \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
             \App\Classes\Helper::validatePermissions($datos["usuario"], "Clientes", ["Guardar"]);
 
             $trabajo = null;
@@ -177,8 +181,8 @@ class CustomerController extends Controller
                     [
                         "direccion" => $datos["direccion"]["direccion"],
                         "sector" => $datos["direccion"]["sector"],
-                        "idEstado" => $datos["direccion"]["idEstado"],
-                        "idCiudad" => $datos["direccion"]["idCiudad"],
+                        "idEstado" => $datos["direccion"]["estado"]["id"],
+                        "idCiudad" => $datos["direccion"]["ciudad"]["id"],
                     ]
                 );
 
@@ -200,8 +204,8 @@ class CustomerController extends Controller
                         [
                             "direccion" => $datos["trabajo"]["direccion"]["direccion"],
                             "sector" => $datos["trabajo"]["direccion"]["sector"],
-                            "idEstado" => $datos["trabajo"]["direccion"]["idEstado"],
-                            "idCiudad" => $datos["trabajo"]["direccion"]["idCiudad"],
+                            "idEstado" => $datos["trabajo"]["direccion"]["estado"]["id"],
+                            "idCiudad" => $datos["trabajo"]["direccion"]["ciudad"]["id"],
                             "numero" => $datos["trabajo"]["direccion"]["numero"],
                         ]
                     );
@@ -239,8 +243,8 @@ class CustomerController extends Controller
                         ["id" => $datos["negocio"]["direccion"]["id"]],
                         [
                             "direccion" => $datos["negocio"]["direccion"]["direccion"],
-                            "idEstado" => $datos["negocio"]["direccion"]["idEstado"],
-                            "idCiudad" => $datos["negocio"]["direccion"]["idCiudad"],
+                            "idEstado" => $datos["negocio"]["direccion"]["estado"]["id"],
+                            "idCiudad" => $datos["negocio"]["direccion"]["ciudad"]["id"],
                         ]
                     );
     
@@ -262,8 +266,15 @@ class CustomerController extends Controller
                     );
                 }
 
+                 //Cliente
+                 $fotoPerfil = null;
+                 if(isset($datos["foto"]))
+                     $fotoPerfil = $this->guardarFoto($datos["foto"], $documento->descripcion);
+
                 //Cliente
-                $customer->foto = $datos["foto"];
+                if($fotoPerfil != null)
+                    $customer->foto = $fotoPerfil;
+                    
                 $customer->nombres = $datos["nombres"];
                 $customer->apellidos = $datos["apellidos"];
                 $customer->apodo = $datos["apodo"];
@@ -279,8 +290,9 @@ class CustomerController extends Controller
                 $customer->idDireccion = $direccion->id;
                 $customer->idContacto = $contacto->id;
                 $customer->idTrabajo = ($trabajo != null) ? $trabajo->id : null;
-                $customer->idNegocio = ($negocio) ? $negocio->id : null;
+                $customer->idNegocio = ($negocio != null) ? $negocio->id : null;
                 $customer->idTipoSituacionLaboral = $datos["tipoSituacionLaboral"]["id"];
+                $customer->idRuta = isset($datos["ruta"]) ? $datos["ruta"]["id"] : null;
                 $customer->save();
             }else{
                 
@@ -299,8 +311,8 @@ class CustomerController extends Controller
                     [
                         "direccion" => $datos["direccion"]["direccion"],
                         "sector" => $datos["direccion"]["sector"],
-                        "idEstado" => $datos["direccion"]["idEstado"],
-                        "idCiudad" => $datos["direccion"]["idCiudad"],
+                        "idEstado" => $datos["direccion"]["estado"]["id"],
+                        "idCiudad" => $datos["direccion"]["ciudad"]["id"],
                     ]
                 );
 
@@ -322,8 +334,8 @@ class CustomerController extends Controller
                         [
                             "direccion" => $datos["trabajo"]["direccion"]["direccion"],
                             "sector" => $datos["trabajo"]["direccion"]["sector"],
-                            "idEstado" => $datos["trabajo"]["direccion"]["idEstado"],
-                            "idCiudad" => $datos["trabajo"]["direccion"]["idCiudad"],
+                            "idEstado" => $datos["trabajo"]["direccion"]["estado"]["id"],
+                            "idCiudad" => $datos["trabajo"]["direccion"]["ciudad"]["id"],
                             "numero" => $datos["trabajo"]["direccion"]["numero"],
                         ]
                     );
@@ -356,13 +368,13 @@ class CustomerController extends Controller
                 }
 
                 //Negocio
-                if($datos["tipoSituacionLaboral"]["descripcion"] == "Empleado"){
+                if($datos["tipoSituacionLaboral"]["descripcion"] == "Negocio propio"){
                     $direccionNegocio = \App\Address::updateOrCreate(
                         ["id" => $datos["negocio"]["direccion"]["id"]],
                         [
                             "direccion" => $datos["negocio"]["direccion"]["direccion"],
-                            "idEstado" => $datos["negocio"]["direccion"]["idEstado"],
-                            "idCiudad" => $datos["negocio"]["direccion"]["idCiudad"],
+                            "idEstado" => $datos["negocio"]["direccion"]["estado"]["id"],
+                            "idCiudad" => $datos["negocio"]["direccion"]["ciudad"]["id"],
                         ]
                     );
     
@@ -399,10 +411,11 @@ class CustomerController extends Controller
                     "idEmpresa" => $datos["usuario"]["idEmpresa"],
                     "idContacto" => $contacto->id,
                     "idDireccion" => $direccion->id,
-                    "idTrabajo" => ($trabajo) ? $trabajo->id : null,
-                    "idNegocio" => ($negocio) ? $negocio->id : null,
+                    "idTrabajo" => ($trabajo != null) ? $trabajo->id : null,
+                    "idNegocio" => ($negocio != null) ? $negocio->id : null,
                     "idDocumento" => $documento->id,
-                    "idTipoSituacionLaboral" => $datos["tipoSituacionLaboral"]["id"]
+                    "idTipoSituacionLaboral" => $datos["tipoSituacionLaboral"]["id"],
+                    "idRuta" => isset($datos["ruta"]) ? $datos["ruta"]["id"] : null
                 ]);
 
                 foreach($datos["referencias"] as $referencia){

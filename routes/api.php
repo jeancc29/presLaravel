@@ -23,6 +23,7 @@ Route::post('/customers/indexAdd', 'CustomerController@indexAdd')->name("custome
 Route::get('/customers/search', 'CustomerController@search');
 Route::post('/customers/store', 'CustomerController@store')->name("customers.store");
 Route::post('/customers/delete', 'CustomerController@destroy')->name("customers.destroy");
+Route::post('/customers/testingDatabase', 'CustomerController@testingDatabase')->name("customers.testingDatabase");
 
 Route::post('/routes', 'RouteController@index');
 Route::post('/routes/store', 'RouteController@store');
@@ -52,6 +53,8 @@ Route::post('/accounts/store', 'AccountController@store');
 Route::post('/accounts/delete', 'AccountController@destroy');
 
 Route::post('/loans', 'LoanController@index')->name("loans.index");
+Route::post('/loans/indexAdd', 'LoanController@indexAdd')->name("loans.indexAdd");
+Route::post('/loans/testCustomFirst', 'LoanController@testCustomFirst')->name("loans.testCustomFirst");
 Route::get('/loans/search', 'LoanController@search');
 Route::post('/loans/show', 'LoanController@show');
 Route::post('/loans/store', 'LoanController@store');
@@ -77,8 +80,13 @@ Route::post('/users/login', 'UserController@login');
 Route::post('/users/store', 'UserController@store');
 Route::post('/users/delete', 'UserController@destroy');
 
-Route::post('/pays', 'PayController@index');
+Route::post('/pays', 'PayController@index')->name("pays.index");
 Route::post('/pays/store', 'PayController@store');
 Route::post('/pays/delete', 'PayController@destroy')->name("pays.destroy");
 
 Route::post('/dashboard', 'DashBoardController@index');
+
+
+Route::post('/guarantees', 'GuaranteeController@index')->name("guarantees.index");
+Route::post('/guarantees/store', 'GuaranteeController@store');
+Route::post('/guarantees/delete', 'GuaranteeController@destroy')->name("guarantees.destroy");

@@ -43,6 +43,20 @@ class RoleSeeder extends Seeder
             $agente->permisos()->attach($permisos);
         }
 
+        $agente = \App\Role::updateOrCreate(["descripcion" => 'Cobrador'], ["idEmpresa" => $empresa->id]);
+        if($agente != null){
+            $entidades = \App\Entity::whereIn("descripcion", ["Clientes", "Cajas", "Prestamos", "Pagos"])->get();
+            $entidades = collect($entidades)->map(function($data){
+                return $data->id;
+            });
+            
+            $permisos = \App\Permission::whereIn("idEntidad", $entidades)->get();
+            $permisos = collect($permisos)->map(function($d) use($agente){
+                return ['idPermiso' => $d['id'], 'idRol' => $agente["id"]];
+            });
+            $agente->permisos()->attach($permisos);
+        }
+
         $agente = \App\Role::updateOrCreate(["descripcion" => 'Programador'], ["idEmpresa" => $empresa->id]);
         if($agente != null){
             $entidades = \App\Entity::all();

@@ -38,7 +38,8 @@ class CreateLoansTable extends Migration
             $table->unsignedInteger("idTipoPlazo");
             $table->unsignedInteger("idTipoAmortizacion");
             $table->unsignedBigInteger("idCaja")->nullable();
-            $table->unsignedInteger("idCobrador");
+            $table->unsignedInteger("idCobrador")->nullable();
+            $table->unsignedInteger("idRuta")->nullable();
             // $table->unsignedInteger("idGasto");
             $table->unsignedInteger("idDesembolso");
             //la llave foranea del idUsuario se agregara despues de crear la tabla usuario

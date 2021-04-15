@@ -11,14 +11,14 @@ class BranchofficeSeeder extends Seeder
      */
     public function run()
     {
-        \App\Branchoffice::updateOrCreate(
-            ["nombre" => "Ninguna"],
-            [
-                "nombre" => "Ninguna", 
-                "direccion" => "Ninguna",
-                "ciudad" => "Ninguna",
-                "idEmpresa" => 1,
-            ],
-        );
+        // \App\Branchoffice::updateOrCreate(
+        //     ["nombre" => "Ninguna"],
+        //     [
+        //         "nombre" => "Ninguna", 
+        //         "direccion" => "Ninguna",
+        //         "ciudad" => "Ninguna",
+        //         "idEmpresa" => 1,
+        //     ],
+        // );
     }
 }

@@ -157,6 +157,7 @@ class BranchofficeController extends Controller
 
         $sucursal = Branchoffice::where(["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]])->first();
         if($sucursal != null){
+            Branchoffice::removeUsers($sucursal->id);
             $sucursal->delete();
 
             return Response::json([

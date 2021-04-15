@@ -20,6 +20,7 @@ class CustomerUltraSmallResource extends JsonResource
             "apellidos" => $this->apellidos,
             "documento" => $this->documento,
             "contacto" => $this->contacto,
+            "idRuta" => $this->idRuta,
         ];
         // return parent::toArray($request);
     }

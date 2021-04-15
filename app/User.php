@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'nombres', 'apellidos', 'correo', 'telefono', 'idContacto', 'idRol', 'idSucursal', 'idEmpresa', 'password', 'usuario', 'foto', 'status', 'idEmpresa'
+        'nombres', 'apellidos', 'correo', 'telefono', 'idContacto', 'idRol', 'idSucursal', 'idEmpresa', 'password', 'usuario', 'foto', 'status', 'idEmpresa', 'idRuta'
     ];
 
     /**
@@ -74,8 +74,44 @@ class User extends Authenticatable
         //Modelo, foreign key, local key
         return $this->hasOne('App\Company', 'id', 'idEmpresa');
     }
+    public function ruta()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Route', 'id', 'idRuta');
+    }
 
     public function permisos(){
         return $this->belongsToMany("App\Permission", "permission_user", "idUsuario", "idPermiso")->withPivot("created_at");
+    }
+
+    public static function customAll($idEmpresa, $idRol = null){
+        $consultaRol = ($idRol != null) ? " AND u.idRol = $idRol" : "";
+        return \DB::select("
+            SELECT
+            u.id,
+            u.nombres,
+            u.apellidos,
+            (SELECT IF(r.id IS NULL, NULL, JSON_OBJECT('id', r.id, 'descripcion', r.descripcion))) AS rol,
+            (SELECT IF(rt.id IS NULL, NULL, JSON_OBJECT('id', rt.id, 'descripcion', rt.descripcion))) AS ruta
+            FROM users u
+            LEFT JOIN roles r on r.id = u.idRol
+            LEFT JOIN routes rt on rt.id = u.idRuta
+            WHERE u.idEmpresa = $idEmpresa
+            $consultaRol
+        ");
+    }
+
+    public static function customCajas($usuario){
+        $cajas = \DB::select("
+            SELECT
+                b.*
+            FROM box_user bu
+            INNER JOIN boxes b ON b.id = bu.idCaja
+            WHERE bu.idUsuario = {$usuario['id']};
+        ");
+        if(count($cajas) == 0)
+            $cajas = \App\Box::where("idEmpresa", $usuario["idEmpresa"])->get();
+
+        return $cajas;
     }
 }

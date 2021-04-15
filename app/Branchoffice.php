@@ -19,4 +19,13 @@ class Branchoffice extends Model
         'status', 
         'idEmpresa', 
     ];
+
+    public static function removeUsers($idSucursal){
+        \DB::select("
+            UPDATE users 
+            SET 
+                users.idSucursal = null
+            WHERE users.idSucursal = $idSucursal
+        ");
+    }
 }

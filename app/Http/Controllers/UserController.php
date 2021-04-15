@@ -35,7 +35,8 @@ class UserController extends Controller
             "cajas" => \App\Box::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
             "sucursales" => \App\Branchoffice::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
             "usuarios" => \App\Http\Resources\UserResource::collection(User::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $data["id"])->where("idRol", "!=", $rolProgramador->id)->take(50)->get()),
-            "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get())
+            "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get()),
+            "rutas" => \App\Route::where("idEmpresa", $data["idEmpresa"])->get()
         ]);
     }
 
@@ -91,6 +92,7 @@ class UserController extends Controller
             "data.cajas" => "",
             "data.permisos" => "",
             "data.status" => "",
+            "data.ruta" => "",
         ])["data"];
 
         \App\Classes\Helper::validateApiKey($data["usuarioData"]["apiKey"]);
@@ -126,9 +128,10 @@ class UserController extends Controller
             "idContacto" => $contacto["id"],
             // "password" => $data["password"],
             "idRol" => $data["rol"]["id"],
-            "idSucursal" => $data["sucursal"]["id"],
+            "idSucursal" => isset($data["sucursal"]) ? $data["sucursal"]["id"] : null,
             "idEmpresa" => $data["usuarioData"]["id"],
             "status" => $data["status"],
+            "idRuta" => isset($data["ruta"]) ? $data["ruta"]["id"] : null
         ];
 
         if($data["password"] != null)

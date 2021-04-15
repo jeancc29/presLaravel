@@ -22,8 +22,9 @@ class CreateUsersTable extends Migration
             $table->integer('status')->default(1);
             $table->unsignedInteger('idEmpresa');
             $table->unsignedInteger('idRol');
-            $table->unsignedInteger('idSucursal');
+            $table->unsignedInteger('idSucursal')->nullable();
             $table->unsignedInteger('idContacto');
+            $table->unsignedInteger('idRuta')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

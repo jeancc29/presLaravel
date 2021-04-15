@@ -15,20 +15,20 @@ class PayController extends Controller
      */
     public function index()
     {
-        // $datos = request()->validate([
-        //     'data.id' => '',
-        //     'data.nombres' => '',
-        //     'data.usuario' => '',
-        //     'data.apiKey' => '',
-        //     'data.idEmpresa' => '',
-        // ])["data"];
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
 
-        // // return Response::json([
-        // //     "message" => $data["apiKey"]
-        // // ], 404);
+        // return Response::json([
+        //     "message" => $data["apiKey"]
+        // ], 404);
 
-        // \App\Classes\Helper::validateApiKey($datos["apiKey"]);
-        // \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
 
         // return Response::json([
         //     'mensaje' => '',
@@ -36,6 +36,13 @@ class PayController extends Controller
         //     'estados' => \App\State::cursor(),
         //     'clientes' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::where("idEmpresa", $datos["idEmpresa"])->cursor()),
         // ], 201);
+        return Response::json([
+            'mensaje' => '',
+            'rutas' => \App\Route::where("idEmpresa", $datos["idEmpresa"]),
+            'usuarios' => \App\User::where("idEmpresa", $datos["idEmpresa"]),
+            'cajas' => \App\User::customCajas($datos),
+            'data' => \App\Pay::customAll($datos["idEmpresa"]),
+        ], 200);
     }
 
     /**

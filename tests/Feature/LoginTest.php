@@ -165,23 +165,7 @@ class LoginTest extends TestCase
         // $response->assertSessionHasErrors('email');
     }
 
-    public function test_destroy_pay()
-    {
-        $this->withoutExceptionHandling();
-        // $tipo = \App\Type::whereRenglon("gasto")->first();
-        $response = $this->post(route('pays.destroy'), [
-            "data" => [
-                "id" => 9,
-                "usuario" => ["usuario" => "jeancc29", "id" => 1, "idEmpresa" => 1],
-                // "tipo" => \App\Classes\Helper::stdClassToArray($tipo),
-                "pago" => ["descripcion" => "Caja1", "id" => 1, "balance" => 100],
-            ]
-        ]);
-
-        $response->assertStatus(200);
-        // $response->assertSessionHasErrors('email');
-    }
-
+    
    
     
 }

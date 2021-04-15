@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Guarantee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response; 
+
 
 class GuaranteeController extends Controller
 {
@@ -14,7 +16,34 @@ class GuaranteeController extends Controller
      */
     public function index()
     {
-        //
+        $datos = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        // return Response::json([
+        //     "message" => $data["apiKey"]
+        // ], 404);
+
+        // \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
+
+        // return Response::json([
+        //     'mensaje' => '',
+        //     'ciudades' => \App\City::cursor(),
+        //     'estados' => \App\State::cursor(),
+        //     'clientes' => \App\Http\Resources\CustomerSmallResource::collection(\App\Customer::where("idEmpresa", $datos["idEmpresa"])->cursor()),
+        // ], 201);
+        return Response::json([
+            'mensaje' => '',
+            'rutas' => \App\Route::where("idEmpresa", $datos["idEmpresa"]),
+            'usuarios' => \App\User::where("idEmpresa", $datos["idEmpresa"]),
+            'cajas' => \App\User::customCajas($datos),
+            'data' => Guarantee::customAll($datos["idEmpresa"]),
+        ], 200);
     }
 
     /**

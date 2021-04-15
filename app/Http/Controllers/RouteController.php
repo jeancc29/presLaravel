@@ -28,7 +28,7 @@ class RouteController extends Controller
 
         return Response::json([
             'mensaje' => '',
-            'rutas' => \App\Route::where("idEmpresa", $data["idEmpresa"])->cursor(),
+            'rutas' => \App\Route::where("idEmpresa", $data["idEmpresa"])->get(),
         ], 201);
     }
 
@@ -60,7 +60,7 @@ class RouteController extends Controller
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
         
 
-        $ruta = Route::updateOrCreate(
+        $ruta = \App\Route::updateOrCreate(
             ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "descripcion" => $datos["descripcion"],

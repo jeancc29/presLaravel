@@ -35,6 +35,7 @@ class Loan extends Model
         "numeroCuotasPagadas", 
         "fechaProximoPago", 
         "status", 
+        "idRuta", 
     ];
 
     public static function customAll($idEmpresa, $arrayOfLimit = array(0, 50))
@@ -133,6 +134,7 @@ class Loan extends Model
             l.numeroCuotas,
             l.fecha,
             l.fechaPrimerPago,
+            l.fechaProximoPago,
             (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
             l.codigo,
             (
@@ -148,13 +150,109 @@ class Loan extends Model
                 INNER JOIN daysexcludeds de ON de.idDia = d.id
                 WHERE de.idPrestamo = l.id
             )AS diasExcluidos,
-            0 AS balancePendiente,
+            l.porcentajeMora,
+            l.diasGracia,
+            l.capitalTotal as capitalTotal,
+            l.interesTotal as interesTotal,
             l.capitalPendiente as capitalPendiente,
             l.interesPendiente as interesPendiente,
             l.numeroCuotasPagadas as numeroCuotasPagadas,
-            l.fechaProximoPago,
+            (
+                SELECT
+                    IF(
+                        uc.id IS NULL,
+                        NULL,
+                        JSON_OBJECT(
+                            'id', uc.id,
+                            'nombres', uc.nombres,
+                            'apellidos', uc.apellidos,
+                            'usuario', uc.usuario
+                        )
+                    )
+            ) AS cobrador,
+            (
+                SELECT
+                    IF(
+                        g.id IS NULL,
+                        NULL,
+                        JSON_OBJECT(
+                            'id', g.id,
+                            'nombres', g.nombres,
+                            'numeroIdentificacion', g.numeroIdentificacion,
+                            'telefono', g.telefono,
+                            'direccion', g.direccion
+                        )
+                    )
+            ) AS garante,
+            (
+                SELECT
+                    IF(
+                        le.id IS NULL,
+                        NULL,
+                        JSON_OBJECT(
+                            'id', le.id,
+                            'idPrestamo', le.idPrestamo,
+                            'idTipo', le.idTipo,
+                            'porcentaje', le.porcentaje,
+                            'importe', le.importe,
+                            'incluirEnElFinanciamiento', le.incluirEnElFinanciamiento,
+                            'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = le.idTipo)
+                        )
+                    )
+            ) AS gastoPrestamo,
+            (
+                SELECT
+                    JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id', guarantees.id,
+                            'descripcion', guarantees.descripcion,
+                            'tasacion', guarantees.tasacion,
+                            'matricula', guarantees.matricula,
+                            'marca', guarantees.marca,
+                            'modelo', guarantees.modelo,
+                            'chasis', guarantees.chasis,
+                            'estado', guarantees.estado,
+                            'placa', guarantees.placa,
+                            'anoFabricacion', guarantees.anoFabricacion,
+                            'motorOSerie', guarantees.motorOSerie,
+                            'cilindros', guarantees.cilindros,
+                            'color', guarantees.color,
+                            'numeroPasajeros', guarantees.numeroPasajeros,
+                            'numeroPuertas', guarantees.numeroPuertas,
+                            'fuerzaMotriz', guarantees.fuerzaMotriz,
+                            'capacidadCarga', guarantees.capacidadCarga,
+                            'placaAnterior', guarantees.placaAnterior,
+                            'fechaExpedicion', guarantees.fechaExpedicion,
+                            'foto', guarantees.foto,
+                            'fotoMatricula', guarantees.fotoMatricula,
+                            'fotoLicencia', guarantees.fotoLicencia,
+                            'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = guarantees.idTipo),
+                            'condicion', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = guarantees.idTipoCondicion)
+                        )
+                    )
+                FROM guarantees
+                WHERE guarantees.idPrestamo = l.id
+            ) AS garantias,
+            (
+                SELECT
+                    IF(
+                        d.id IS NULL,
+                        NULL,
+                        JSON_OBJECT(
+                            'id', d.id,
+                            'banco', (SELECT JSON_OBJECT('id', banks.id, 'descripcion', banks.descripcion) FROM banks WHERE banks.id = d.idBanco),
+                            'cuenta', (SELECT JSON_OBJECT('id', accounts.id, 'descripcion', accounts.descripcion) FROM accounts WHERE accounts.id = d.idCuenta),
+                            'bancoDestino', (SELECT JSON_OBJECT('id', banks.id, 'descripcion', banks.descripcion) FROM banks WHERE banks.id = d.idBancoDestino),
+                            'cuentaDestino', d.cuentaDestino,
+                            'montoBruto', d.montoBruto,
+                            'montoNeto', d.montoNeto,
+                            'numeroCheque', d.numeroCheque,
+                            'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = d.idTipo)
+                        )
+                    )
+            ) AS desembolso,
+            0 AS balancePendiente,
             (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = l.idTipoAmortizacion) as tipoAmortizacion,
-            l.codigo codigo,
             l.status,
             (
                 SELECT
@@ -195,12 +293,25 @@ class Loan extends Model
                     order by a.id
                 ) AS a
                 WHERE a.pagada = 0 AND a.diasAtrasados >= 0
-            ) as cuotasAtrasadas
+            ) as cuotasAtrasadas,
+            (
+                SELECT 
+                IF(
+                    r.id IS NULL,
+                    NULL,
+                    JSON_OBJECT('id', r.id, 'descripcion', r.descripcion)
+                )
+            ) as ruta
         FROM loans l 
         INNER JOIN customers c ON c.id = l.idCliente 
         INNER JOIN types t ON t.id = l.idTipoAmortizacion 
         LEFT JOIN boxes b ON b.id = l.idCaja 
         LEFT JOIN types tp ON tp.id = l.idTipoPlazo
+        LEFT JOIN users uc ON uc.id = l.idCobrador
+        LEFT JOIN guarantors g ON g.idPrestamo = l.id
+        LEFT JOIN loanexpenses le ON le.idPrestamo = l.id
+        LEFT JOIN disbursements d ON d.id = l.idDesembolso
+        LEFT JOIN routes r ON r.id = l.idRuta
         WHERE l.id = $idPrestamo");
 
         return (count($prestamo) == 0) ? null : $prestamo[0];

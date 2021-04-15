@@ -33,6 +33,34 @@ class LoanController extends Controller
         $fecha = getdate();
         $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
         $fechaFinal = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 23:50:00';
+        
+        $prestamos = Loan::customAll($idEmpresa);
+
+        return Response::json([
+            "prestamos" => $prestamos,
+            "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
+        ]);
+    }
+
+    public function indexAdd()
+    {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+            'data.idPrestamo' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        \App\Classes\Helper::validatePermissions($data, "Prestamos", ["Ver"]);
+
+        $idEmpresa = $data["idEmpresa"];
+
+        $fecha = getdate();
+        $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
+        $fechaFinal = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 23:50:00';
         // $prestamos = \DB::select("select
         // l.id,
         // (select JSON_OBJECT('id', c.id, 'nombres', c.nombres, 'apellidos', c.apellidos, 'nombreFoto', c.foto)) as cliente,
@@ -53,22 +81,20 @@ class LoanController extends Controller
         // where l.idEmpresa = $idEmpresa
         //  limit 50 ");
         //  where l.created_at between '{$fechaInicial}' and '{$fechaFinal}' limit 50 ");
-        $prestamos = (isset($data["idPrestamo"])) ? [] : Loan::customAll($idEmpresa);
         $prestamo = (isset($data["idPrestamo"])) ? Loan::customFirst($data["idPrestamo"]) : null;
 
         return Response::json([
-            "prestamos" => $prestamos,
-            "prestamo" => $prestamo,
+            "data" => $prestamo,
             "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
             "cajas" => \App\Box::where("idEmpresa", $idEmpresa)->cursor(),
             "bancos" => \App\Bank::where("idEmpresa", $idEmpresa)->cursor(),
             "cuentas" => \App\Account::where("idEmpresa", $idEmpresa)->get(),
             "dias" => \App\Day::get(),
-            "configuracionPrestamo" => \App\Loansetting::where("idEmpresa", $idEmpresa)->first()
+            "configuracionPrestamo" => \App\Loansetting::where("idEmpresa", $idEmpresa)->first(),
+            "rutas" => \App\Route::where("idEmpresa", $idEmpresa)->get(),
+            "cobradores" => \App\User::customAll($idEmpresa, \App\Role::whereDescripcion("Cobrador")->first()->id),
         ]);
     }
-
-    
 
     /**
      * Show the form for creating a new resource.
@@ -93,14 +119,27 @@ class LoanController extends Controller
             else if($datos["numeroCuotas"] != $prestamo->numeroCuotas)
                 $errorMessage = "Las cuotas no se pueden editar porque ya hay pagos realizados";
             else if($datos["porcentajeInteresAnual"] != $prestamo->porcentajeInteresAnual)
-                $errorMessage = "El interes no se puede editar porque ya hay pagos realizados";
+                $errorMessage = "El interes no se puede editar porque ya hay pagos realizados {$datos["porcentajeInteres"]} == {$prestamo->porcentajeInteres}";
             else if($datos["fechaPrimerPago"] != $prestamo->fechaPrimerPago)
-                $errorMessage = "El interes no se puede editar porque ya hay pagos realizados";
+                $errorMessage = "La fecha primer pago no se puede editar porque ya hay pagos realizados";
+            else
+                return;
         }else{
             return;
         }   
 
         abort(402, $errorMessage);
+    }
+
+    public function testCustomFirst(){
+        $datos = request()->validate([
+            'data.id' => '',
+        ])["data"];
+        
+
+        return Response::json([
+            "data" => \App\Loan::customFirst($datos["id"])
+        ]);
     }
 
     /**
@@ -141,6 +180,7 @@ class LoanController extends Controller
             'data.desembolso' => '',
             'data.usuario' => '',
             'data.amortizaciones' => '',
+            'data.ruta' => '',
         ])["data"];
 
         
@@ -153,6 +193,7 @@ class LoanController extends Controller
 
         // \DB::transaction(function() use($datos){
             
+            // return Response::
 
             try {
                 \DB::beginTransaction();
@@ -208,8 +249,9 @@ class LoanController extends Controller
                         "idTipoPlazo" => $datos["tipoPlazo"]["id"],
                         "idTipoAmortizacion" => $datos["tipoAmortizacion"]["id"],
                         "idCaja" => ($datos["caja"] != null) ? $datos["caja"]["id"] : null,
+                        "idRuta" => ($datos["ruta"] != null) ? $datos["ruta"]["id"] : null,
+                        "idCobrador" => ($datos["cobrador"] != null) ? $datos["cobrador"]["id"] : null,
                         // "idCobrador" => $datos["cobrador"]["id"],
-                        "idCobrador" => 1,
                         // "idGasto" => $gasto->id,
                         "idDesembolso" => $desembolso->id,
                     ]
@@ -219,7 +261,7 @@ class LoanController extends Controller
                         $gasto = \App\Loanexpense::updateOrCreate(
                             ["id" => $datos["gastoPrestamo"]["id"]],
                             [
-                                "idTipo" => $prestamo->id, 
+                                "idPrestamo" => $prestamo->id, 
                                 "idTipo" => $datos["gastoPrestamo"]["tipo"]["id"], 
                                 "porcentaje" => $datos["gastoPrestamo"]["porcentaje"],
                                 "importe" => $datos["gastoPrestamo"]["importe"],
@@ -234,7 +276,7 @@ class LoanController extends Controller
                             [
                                 "nombres" => $datos["garante"]["nombres"],
                                 "telefono" => $datos["garante"]["telefono"],
-                                "numeroIdenticacion" => $datos["garante"]["numeroIdenticacion"],
+                                "numeroIdentificacion" => $datos["garante"]["numeroIdentificacion"],
                                 "direccion" => $datos["garante"]["direccion"],
                                 "idPrestamo" => $prestamo->id,
                             ]
@@ -267,6 +309,7 @@ class LoanController extends Controller
                                 "tasacion" => $garantia["tasacion"],
                                 "descripcion" => $garantia["descripcion"],
                                 "marca" => $garantia["marca"],
+                                "modelo" => $garantia["modelo"],
                                 "chasis" => $garantia["chasis"],
                                 "estado" => $garantia["estado"],
                                 "placa" => $garantia["placa"],
@@ -284,6 +327,7 @@ class LoanController extends Controller
                                 "fotoMatricula" => null,
                                 "fotoLicencia" => null,
                                 "idPrestamo" => $prestamo->id,
+                                "idEmpresa" => $prestamo->idEmpresa,
                                 "idTipoCondicion" => $garantia["condicion"]["id"],
                                 "idTipo" => $garantia["tipo"]["id"],
                             ]

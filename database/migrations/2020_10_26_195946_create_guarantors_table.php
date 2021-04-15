@@ -16,7 +16,7 @@ class CreateGuarantorsTable extends Migration
         Schema::create('guarantors', function (Blueprint $table) {
             $table->increments("id");
             $table->string("nombres");
-            $table->string("numeroIdenticacion");
+            $table->string("numeroIdentificacion");
             $table->unsignedBigInteger("idPrestamo");
             $table->string("telefono");
             $table->text("direccion");
