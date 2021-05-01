@@ -28,8 +28,8 @@ class GuaranteeController extends Controller
         //     "message" => $data["apiKey"]
         // ], 404);
 
-        // \App\Classes\Helper::validateApiKey($datos["apiKey"]);
-        \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
+        \App\Classes\Helper::validatePermissions($datos, "Garantia", ["Ver"]);
 
         // return Response::json([
         //     'mensaje' => '',
@@ -64,7 +64,46 @@ class GuaranteeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $datos = request()->validate([
+            'data.usuario' => '',
+            'data.id' => '',
+            'data.idEmpresa' => '',
+            'data.estado' => '',
+            'data.comentario' => '',
+        ])["data"];
+
+
+        // \DB::transaction(function() use($datos){
+        //     // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+            
+            
+        // });
+
+        \DB::beginTransaction();
+        try {
+            \App\Classes\Helper::validatePermissions($datos["usuario"], "Garantias", ["Cambiar estado"]);
+            
+
+           $garantia = Guarantee::where(["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
+           if($garantia == null)
+                abort(404, "La garantia no existe");
+
+            $garantia->estado = $datos["estado"];
+            $garantia->comentario = $datos["comentario"];
+            $garantia->save();
+
+            \DB::commit();
+
+            return Response::json([
+                "mensaje" => "Se ha guardado correctamente",
+                "data" => Guarantee::customFirst($garantia->id)
+            ]);
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            \DB::rollback();
+            abort(402, "Error: {$th->getMessage()}");
+        }
     }
 
     /**

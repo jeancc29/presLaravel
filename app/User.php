@@ -101,6 +101,35 @@ class User extends Authenticatable
         ");
     }
 
+    public static function customFirst($idEmpresa, $id){
+        $data = \DB::select("
+            SELECT
+            u.id,
+            u.nombres,
+            u.apellidos,
+            (SELECT IF(r.id IS NULL, NULL, JSON_OBJECT('id', r.id, 'descripcion', r.descripcion))) AS rol,
+            (SELECT IF(rt.id IS NULL, NULL, JSON_OBJECT('id', rt.id, 'descripcion', rt.descripcion))) AS ruta,
+            (
+                SELECT
+                    JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id', b.id,
+                            'descripcion', b.descripcion
+                        )
+                    )
+                FROM boxes b
+                INNER JOIN box_user bu ON b.id = bu.idCaja
+                WHERE bu.idUsuario = u.id
+            ) AS cajas
+            FROM users u
+            LEFT JOIN roles r on r.id = u.idRol
+            LEFT JOIN routes rt on rt.id = u.idRuta
+            WHERE u.idEmpresa = $idEmpresa AND u.id = $id
+        ");
+
+        return count($data) > 0 ? $data[0] : null;
+    }
+
     public static function customCajas($usuario){
         $cajas = \DB::select("
             SELECT

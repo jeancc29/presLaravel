@@ -17,6 +17,7 @@ class CreateGuaranteesTable extends Migration
             $table->increments("id");
             $table->decimal("tasacion", 20, 2);
             $table->string("descripcion");
+            $table->string("comentario")->nullable();
             $table->string("matricula")->nullable();
             $table->string("marca")->nullable();
             $table->string("modelo")->nullable();

@@ -62,5 +62,11 @@ class PermissionSeeder extends Seeder
         $entidad = \App\Entity::whereDescripcion("Configuraciones")->first();
         \App\Permission::updateOrCreate(["descripcion" => 'Empresa', "idEntidad" => $entidad->id],);
         \App\Permission::updateOrCreate(["descripcion" => 'Prestamo', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Recibo', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Otros', "idEntidad" => $entidad->id],);
+
+        $entidad = \App\Entity::whereDescripcion("Garantías")->first();
+        \App\Permission::updateOrCreate(["descripcion" => 'Ver', "idEntidad" => $entidad->id],);
+        \App\Permission::updateOrCreate(["descripcion" => 'Cambiar estado', "idEntidad" => $entidad->id],);
     }
 }

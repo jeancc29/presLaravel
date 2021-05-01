@@ -40,6 +40,29 @@ class UserController extends Controller
         ]);
     }
 
+    public function get()
+    {
+        $data = request()->validate([
+            'data.id' => '',
+            'data.nombres' => '',
+            'data.usuario' => '',
+            'data.apiKey' => '',
+            'data.idEmpresa' => '',
+        ])["data"];
+
+        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+
+        return Response::json([
+            "data" => User::customFirst($datos["idEmpresa"], $datos["id"]),
+            "roles" => \App\Http\Resources\RoleResource::collection(\App\Role::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $rolProgramador->id)->take(50)->get()),
+            "cajas" => \App\Box::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
+            "sucursales" => \App\Branchoffice::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
+            "usuarios" => \App\Http\Resources\UserResource::collection(User::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $data["id"])->where("idRol", "!=", $rolProgramador->id)->take(50)->get()),
+            "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get()),
+            "rutas" => \App\Route::where("idEmpresa", $data["idEmpresa"])->get()
+        ]);
+    }
+
     public function login(Request $request){
         $data = request()->validate([
             'data.usuario' => "",

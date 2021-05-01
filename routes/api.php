@@ -63,6 +63,14 @@ Route::post('/loans/delete', 'LoanController@destroy');
 Route::post('/loansettings', 'LoansettingController@index');
 Route::post('/loansettings/store', 'LoansettingController@store');
 
+Route::post('/receipts', 'ReceiptController@index')->name("receipts.index");
+Route::post('/receipts/store', 'ReceiptController@store')->name("receipts.store");
+
+
+Route::post('/othersettings', 'OthersettingController@index')->name("othersettings.index");
+Route::post('/othersettings/store', 'OthersettingController@store')->name("othersettings.store");
+
+
 Route::post('/roles', 'RoleController@index');
 Route::post('/roles/store', 'RoleController@store');
 Route::post('/roles/delete', 'RoleController@destroy');
@@ -79,6 +87,7 @@ Route::post('/users', 'UserController@index');
 Route::post('/users/login', 'UserController@login');
 Route::post('/users/store', 'UserController@store');
 Route::post('/users/delete', 'UserController@destroy');
+Route::post('/users/get', 'UserController@get');
 
 Route::post('/pays', 'PayController@index')->name("pays.index");
 Route::post('/pays/store', 'PayController@store');
@@ -88,5 +97,5 @@ Route::post('/dashboard', 'DashBoardController@index');
 
 
 Route::post('/guarantees', 'GuaranteeController@index')->name("guarantees.index");
-Route::post('/guarantees/store', 'GuaranteeController@store');
+Route::post('/guarantees/store', 'GuaranteeController@store')->name("guarantees.store");
 Route::post('/guarantees/delete', 'GuaranteeController@destroy')->name("guarantees.destroy");

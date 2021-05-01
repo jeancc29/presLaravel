@@ -19,6 +19,7 @@ class EntitySeeder extends Seeder
         \App\Entity::updateOrCreate(["descripcion" => 'Bancos'],);
         \App\Entity::updateOrCreate(["descripcion" => 'Cuentas'],);
         \App\Entity::updateOrCreate(["descripcion" => 'Rutas'],);
+        \App\Entity::updateOrCreate(["descripcion" => 'Garantías'],);
         \App\Entity::updateOrCreate(["descripcion" => 'Configuraciones'],);
     }
 }
