@@ -42,24 +42,24 @@ class UserController extends Controller
 
     public function get()
     {
-        $data = request()->validate([
+        $datos = request()->validate([
             'data.id' => '',
-            'data.nombres' => '',
-            'data.usuario' => '',
-            'data.apiKey' => '',
-            'data.idEmpresa' => '',
+            'data.usuario' => ''
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["apiKey"]);
+        // return Response::json(["datos" => $datos], 404);
+
+        \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
+        $rolProgramador = \App\Role::whereDescripcion("Programador")->first();
 
         return Response::json([
-            "data" => User::customFirst($datos["idEmpresa"], $datos["id"]),
-            "roles" => \App\Http\Resources\RoleResource::collection(\App\Role::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $rolProgramador->id)->take(50)->get()),
-            "cajas" => \App\Box::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
-            "sucursales" => \App\Branchoffice::where("idEmpresa", $data["idEmpresa"])->take(50)->get(),
-            "usuarios" => \App\Http\Resources\UserResource::collection(User::where("idEmpresa", $data["idEmpresa"])->where("id", "!=", $data["id"])->where("idRol", "!=", $rolProgramador->id)->take(50)->get()),
+            "data" => User::customFirst($datos["usuario"]["idEmpresa"], $datos["id"]),
+            "roles" => \App\Http\Resources\RoleResource::collection(\App\Role::where("idEmpresa", $datos["usuario"]["idEmpresa"])->where("id", "!=", $rolProgramador->id)->take(50)->get()),
+            "cajas" => \App\Box::where("idEmpresa", $datos["usuario"]["idEmpresa"])->take(50)->get(),
+            "sucursales" => \App\Branchoffice::where("idEmpresa", $datos["usuario"]["idEmpresa"])->take(50)->get(),
+            "usuarios" => \App\Http\Resources\UserResource::collection(User::where("idEmpresa", $datos["usuario"]["idEmpresa"])->where("id", "!=", $datos["usuario"]["id"])->where("idRol", "!=", $rolProgramador->id)->take(50)->get()),
             "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get()),
-            "rutas" => \App\Route::where("idEmpresa", $data["idEmpresa"])->get()
+            "rutas" => \App\Route::where("idEmpresa", $datos["usuario"]["idEmpresa"])->get()
         ]);
     }
 
@@ -188,6 +188,53 @@ class UserController extends Controller
             "mensaje" => "Se ha guardado correctamente",
             // "data" => new \App\Http\Resources\RoleResource($data)
             "usuario" => new \App\Http\Resources\UserResource($usuario)
+        ]);
+    }
+
+    public function storePerfil(Request $request)
+    {
+        $data = request()->validate([
+            "data.usuarioData" => "",
+            "data.id" => "",
+            'data.foto' => '',
+            'data.nombreFoto' => '',
+            "data.nombres" => "",
+            "data.apellidos" => "",
+            "data.contacto" => "",
+        ])["data"];
+
+        // \App\Classes\Helper::validateApiKey($data["usuarioData"]["apiKey"]);
+        // \App\Classes\Helper::validatePermissions($data["usuarioData"], "Usuarios", ["Guardar"]);
+
+        $usuario = User::whereId($data["id"])->first();
+        if($usuario == null)
+            abort(404, "El usuario no existe");
+
+        $fotoPerfil = null;
+        if(isset($data["foto"]))
+            $fotoPerfil = $this->guardarFoto($data["foto"], $data["nombres"]);
+        else
+            $fotoPerfil = $data["nombreFoto"];
+
+        $contacto = \App\Contact::updateOrCreate(
+            ["id" => $data["contacto"]["id"]],
+            [
+                "telefono" => $data["contacto"]["telefono"],
+                "correo" => $data["contacto"]["correo"],
+            ]
+        );
+
+        if(isset($fotoPerfil))
+            $usuario->foto = $fotoPerfil;
+
+        $usuario->nombres = $data["nombres"];
+        $usuario->apellidos = $data["apellidos"];
+        $usuario->save();
+
+        return Response::json([
+            "mensaje" => "Se ha guardado correctamente",
+            // "data" => new \App\Http\Resources\RoleResource($data)
+            "data" => User::customFirst($usuario->idEmpresa, $usuario->id)
         ]);
     }
 

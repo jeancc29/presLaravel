@@ -161,6 +161,8 @@ class PayController extends Controller
         return Response::json([
             "data" => Pay::customFirst($data->id),
             "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo),
+            "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()),
+            "configuracionRecibo" => \App\Receipt::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()
             // "capitalPendiente" => $prestamo->capitalPendiente,
             // "interesPendiente" => $prestamo->interesPendiente,
             // "status" => $prestamo->status,

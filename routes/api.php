@@ -86,8 +86,9 @@ Route::post('/companies/delete', 'CompanyController@destroy');
 Route::post('/users', 'UserController@index');
 Route::post('/users/login', 'UserController@login');
 Route::post('/users/store', 'UserController@store');
+Route::post('/users/storePerfil', 'UserController@storePerfil')->name("users.storePerfil");
 Route::post('/users/delete', 'UserController@destroy');
-Route::post('/users/get', 'UserController@get');
+Route::post('/users/get', 'UserController@get')->name("users.get");
 
 Route::post('/pays', 'PayController@index')->name("pays.index");
 Route::post('/pays/store', 'PayController@store');

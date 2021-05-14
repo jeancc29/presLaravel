@@ -428,6 +428,8 @@ class LoanController extends Controller
             "prestamo" => $prestamo,
             "tipos" => \App\Type::where("renglon", "desembolso")->cursor(),
             "cajas" => $cajas,
+            "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $usuario->idEmpresa)->first()),
+            "configuracionRecibo" => \App\Receipt::where("idEmpresa", $usuario->idEmpresa)->first()
          ]);
     }
 

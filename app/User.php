@@ -107,8 +107,10 @@ class User extends Authenticatable
             u.id,
             u.nombres,
             u.apellidos,
+            u.usuario,
             (SELECT IF(r.id IS NULL, NULL, JSON_OBJECT('id', r.id, 'descripcion', r.descripcion))) AS rol,
             (SELECT IF(rt.id IS NULL, NULL, JSON_OBJECT('id', rt.id, 'descripcion', rt.descripcion))) AS ruta,
+            (SELECT IF(c.id IS NULL, NULL, JSON_OBJECT('id', c.id, 'correo', c.correo, 'telefono', c.telefono, 'celular', c.celular))) AS contacto,
             (
                 SELECT
                     JSON_ARRAYAGG(
@@ -122,8 +124,9 @@ class User extends Authenticatable
                 WHERE bu.idUsuario = u.id
             ) AS cajas
             FROM users u
-            LEFT JOIN roles r on r.id = u.idRol
-            LEFT JOIN routes rt on rt.id = u.idRuta
+            LEFT JOIN roles r ON r.id = u.idRol
+            LEFT JOIN routes rt ON rt.id = u.idRuta
+            LEFT JOIN contacts c ON c.id = u.idContacto 
             WHERE u.idEmpresa = $idEmpresa AND u.id = $id
         ");
 
