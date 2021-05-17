@@ -75,7 +75,6 @@ class OthersettingController extends Controller
                     "ocultarInteresAmortizacion" => $datos["ocultarInteresAmortizacion"],
                     "requirirSeleccionarCaja" => $datos["requirirSeleccionarCaja"],
                     "calcularComisionACuota" => $datos["calcularComisionACuota"],
-                    "mostrarCentabosRecibidos" => $datos["mostrarCentabosRecibidos"]
                 ]
             );
             \DB::commit();

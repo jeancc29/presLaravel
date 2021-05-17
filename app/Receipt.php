@@ -18,5 +18,6 @@ class Receipt extends Model
         "fechaProximoPago",
         "formaPago",
         "firma",
+        "mostrarCentavosRecibidos",
     ];
 }

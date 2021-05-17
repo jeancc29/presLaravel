@@ -63,6 +63,7 @@ class ReceiptController extends Controller
             'data.fechaProximoPago' => '',
             'data.formaPago' => '',
             'data.firma' => '',
+            'data.mostrarCentavosRecibidos' => '',
         ])["data"];
 
         
@@ -87,6 +88,7 @@ class ReceiptController extends Controller
                     "fechaProximoPago" => $datos["fechaProximoPago"],
                     "formaPago" => $datos["formaPago"],
                     "firma" => $datos["firma"],
+                    "mostrarCentavosRecibidos" => $datos["mostrarCentavosRecibidos"],
                 ]
             );
             \DB::commit();

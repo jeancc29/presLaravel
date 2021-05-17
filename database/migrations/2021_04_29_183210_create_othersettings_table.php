@@ -19,7 +19,6 @@ class CreateOthersettingsTable extends Migration
             $table->boolean("ocultarInteresAmortizacion");
             $table->boolean("requirirSeleccionarCaja");
             $table->boolean("calcularComisionACuota");
-            $table->boolean("mostrarCentabosRecibidos");
             $table->timestamps();
         });
     }

@@ -26,6 +26,7 @@ class CreateReceiptsTable extends Migration
             $table->boolean("fechaProximoPago");
             $table->boolean("formaPago");
             $table->boolean("firma");
+            $table->boolean("mostrarCentavosRecibidos");
             $table->timestamps();
         });
     }

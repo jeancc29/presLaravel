@@ -11,6 +11,5 @@ class Othersetting extends Model
         "ocultarInteresAmortizacion",
         "requirirSeleccionarCaja",
         "calcularComisionACuota",
-        "mostrarCentabosRecibidos",
     ];
 }
