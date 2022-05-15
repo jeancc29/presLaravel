@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Bank;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 
 class BankController extends Controller
@@ -16,21 +16,36 @@ class BankController extends Controller
      */
     public function index()
     {
-        $data = request()->validate([
+        $requestData = request()->validate([
             'data.id' => '',
             'data.nombres' => '',
             'data.usuario' => '',
             'data.apiKey' => '',
             'data.idEmpresa' => '',
+            'data.idBanco' => '',
+            'data.retornarBancos' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data, "Bancos", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($requestData["apiKey"]);
+        \App\Classes\Helper::validatePermissions($requestData, "Bancos", ["Ver"]);
+
+        $id = $requestData["idBanco"] ?? null;
+        $retornarBancos = $requestData["retornarBancos"] ?? false;
+
+        $data = null;
+
+        if($id != null) {
+            $data = Bank::query()->where(["idEmpresa" => $requestData["idEmpresa"], "id" => $id])->first();
+            if($data == null)
+                throw new \Exception("El banco no existe");
+        }
 
         return Response::json([
             "mensaje" => "",
-            "bancos" => Bank::where("idEmpresa", $data["idEmpresa"])->take(20)->get(),
-        ], 201);
+            "hola" => $requestData,
+            "bancos" => $retornarBancos ? Bank::where("idEmpresa", $requestData["idEmpresa"])->take(20)->get() : [],
+            "data" => $data
+        ]);
     }
 
     /**

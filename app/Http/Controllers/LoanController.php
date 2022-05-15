@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TypeResource;
 use App\Loan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 
 class LoanController extends Controller
@@ -33,12 +34,12 @@ class LoanController extends Controller
         $fecha = getdate();
         $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
         $fechaFinal = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 23:50:00';
-        
+
         $prestamos = Loan::customAll($idEmpresa);
 
         return Response::json([
             "prestamos" => $prestamos,
-            "tipos" => \App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->cursor(),
+            "tipos" =>  TypeResource::collection(\App\Type::whereIn("renglon", ["plazo", "amortizacion", "gastoPrestamo", "desembolso", "garantia", "condicionGarantia", "tipoVehiculo"])->get()),
         ]);
     }
 
@@ -74,10 +75,10 @@ class LoanController extends Controller
         // (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
         // l.codigo codigo,
         // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
-        // from loans l 
-        //  inner join customers c on c.id = l.idCliente 
-        //  inner join types t on t.id = l.idTipoAmortizacion 
-        //  left join boxes b on b.id = l.idCaja 
+        // from loans l
+        //  inner join customers c on c.id = l.idCliente
+        //  inner join types t on t.id = l.idTipoAmortizacion
+        //  left join boxes b on b.id = l.idCaja
         // where l.idEmpresa = $idEmpresa
         //  limit 50 ");
         //  where l.created_at between '{$fechaInicial}' and '{$fechaFinal}' limit 50 ");
@@ -126,7 +127,7 @@ class LoanController extends Controller
                 return;
         }else{
             return;
-        }   
+        }
 
         abort(402, $errorMessage);
     }
@@ -135,7 +136,7 @@ class LoanController extends Controller
         $datos = request()->validate([
             'data.id' => '',
         ])["data"];
-        
+
 
         return Response::json([
             "data" => \App\Loan::customFirst($datos["id"])
@@ -183,7 +184,7 @@ class LoanController extends Controller
             'data.ruta' => '',
         ])["data"];
 
-        
+
 
         // return Response::json([
         //     "message" => "La caja no tiene monto suficiente. {$datos["caja"]["balance"]}",
@@ -192,7 +193,7 @@ class LoanController extends Controller
         $prestamo = null;
 
         // \DB::transaction(function() use($datos){
-            
+
             // return Response::
 
             try {
@@ -220,8 +221,8 @@ class LoanController extends Controller
                         "montoNeto" => $datos["desembolso"]["montoNeto"],
                     ]
                 );
-    
-                
+
+
                 $prestamo = Loan::updateOrCreate(
                     [
                         "id" => $datos["id"]
@@ -256,20 +257,20 @@ class LoanController extends Controller
                         "idDesembolso" => $desembolso->id,
                     ]
                     );
-    
+
                     if($datos["gastoPrestamo"] != null){
                         $gasto = \App\Loanexpense::updateOrCreate(
                             ["id" => $datos["gastoPrestamo"]["id"]],
                             [
-                                "idPrestamo" => $prestamo->id, 
-                                "idTipo" => $datos["gastoPrestamo"]["tipo"]["id"], 
+                                "idPrestamo" => $prestamo->id,
+                                "idTipo" => $datos["gastoPrestamo"]["tipo"]["id"],
                                 "porcentaje" => $datos["gastoPrestamo"]["porcentaje"],
                                 "importe" => $datos["gastoPrestamo"]["importe"],
                                 "incluirEnElFinanciamiento" => $datos["gastoPrestamo"]["incluirEnElFinanciamiento"],
                             ]
                         );
                     }
-    
+
                     if($datos["garante"] != null){
                         $garante = \App\Guarantor::updateOrCreate(
                             ["id" => $datos["garante"]["id"]],
@@ -282,7 +283,7 @@ class LoanController extends Controller
                             ]
                         );
                     }
-    
+
                     \App\Amortization::where("id", ">", 0)->where("idPrestamo", $prestamo->id)->delete();
                     foreach ($datos["amortizaciones"] as $amortizacion) {
                         \App\Amortization::updateOrCreate(
@@ -301,7 +302,7 @@ class LoanController extends Controller
                             ]
                         );
                     }
-    
+
                     foreach ($datos["garantias"] as $garantia) {
                         \App\Guarantee::updateOrCreate(
                             ["id" => $garantia["id"]],
@@ -333,7 +334,7 @@ class LoanController extends Controller
                             ]
                             );
                     }
-    
+
                     $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Préstamo", "renglon" => "transaccion"])->first());
                     \App\Transaction::make($datos["usuario"], $datos["caja"], $prestamo->monto, $tipo, $prestamo->id, "Desembolso de Préstamo");
                     \DB::commit();
@@ -364,16 +365,16 @@ class LoanController extends Controller
         // // (select JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) from types where types.id = l.idTipoAmortizacion) as tipoAmortizacion,
         // // l.codigo codigo,
         // // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja
-        // // from loans l 
-        // //  inner join customers c on c.id = l.idCliente 
-        // //  inner join types t on t.id = l.idTipoAmortizacion 
+        // // from loans l
+        // //  inner join customers c on c.id = l.idCliente
+        // //  inner join types t on t.id = l.idTipoAmortizacion
         // //  left join boxes b on b.id = l.idCaja
         // //  where l.id = {$lastPrestamo->id}
         // //  limit 1 ");
         // $prestamo = Loan::customFirst($lastPrestamo->id);
-        
-        
-        
+
+
+
     }
 
     /**
@@ -388,6 +389,8 @@ class LoanController extends Controller
             'data.usuario' => '',
             'data.id' => '',
         ])["data"];
+
+//        throw new \Exception("Hola: {$datos["id"]}");
 
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
@@ -406,9 +409,9 @@ class LoanController extends Controller
         // l.codigo codigo,
         // (select JSON_OBJECT('id', b.id, 'descripcion', b.descripcion)) as caja,
         // (select JSON_ARRAYAGG(JSON_OBJECT('id', amortizations.id, 'capital', amortizations.capital, 'interes', amortizations.interes, 'cuota', amortizations.cuota, 'fecha', amortizations.fecha)) from amortizations where amortizations.idPrestamo = l.id) as amortizaciones
-        // from loans l 
-        //  inner join customers c on c.id = l.idCliente 
-        //  inner join types t on t.id = l.idTipoAmortizacion 
+        // from loans l
+        //  inner join customers c on c.id = l.idCliente
+        //  inner join types t on t.id = l.idTipoAmortizacion
         //  left join boxes b on b.id = l.idCaja
         //  left join documents d on d.id = c.idDocumento
         //  left join contacts co on co.id = c.idContacto

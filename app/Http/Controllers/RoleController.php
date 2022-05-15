@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Role;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class RoleController extends Controller
 {
@@ -23,15 +23,17 @@ class RoleController extends Controller
             'data.idEmpresa' => '',
         ])["data"];
 
+//        return Response::json(["data" => $data]);
         \App\Classes\Helper::validateApiKey($data["apiKey"]);
         \App\Classes\Helper::validatePermissions($data, "Roles", ["Ver"]);
-        
+
 
         return Response::json([
             "mensaje" => "",
             "roles" => \App\Http\Resources\RoleResource::collection(Role::where("idEmpresa", $data["idEmpresa"])->take(20)->get()),
+//            "roles" => \App\Http\Resources\RoleResource::collection(Role::where("idEmpresa", $data["idEmpresa"])->orderBy("id", "desc")->take(1)->get()),
             "entidades" => \App\Http\Resources\EntityResource::collection(\App\Entity::take(50)->get())
-        ], 201);
+        ]);
     }
 
     /**
@@ -61,7 +63,7 @@ class RoleController extends Controller
 
         \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($data["usuario"], "Roles", ["Guardar"]);
-        
+
 
         $role = Role::updateOrCreate(
             ["id" => $data["id"], "idEmpresa" => $data["usuario"]["idEmpresa"]],

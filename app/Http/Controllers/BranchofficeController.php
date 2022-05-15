@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Branchoffice;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class BranchofficeController extends Controller
 {
@@ -15,22 +15,36 @@ class BranchofficeController extends Controller
      */
     public function index()
     {
-        $data = request()->validate([
+        $requestData = request()->validate([
             'data.id' => '',
             'data.nombres' => '',
             'data.usuario' => '',
             'data.apiKey' => '',
             'data.idEmpresa' => '',
+            'data.idSucursal' => '',
+            'data.retornarSucursales' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data, "Sucursales", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($requestData["apiKey"]);
+        \App\Classes\Helper::validatePermissions($requestData, "Sucursales", ["Ver"]);
+
+        $id = $requestData["idSucursal"] ?? null;
+        $retornarSucursales = $requestData["retornarSucursales"] ?? false;
+
+        $data = null;
+
+        if($id != null) {
+            $data = Branchoffice::query()->where(["idEmpresa" => $requestData["idEmpresa"], "id" => $id])->first();
+            if($data == null)
+                throw new \Exception("La sucursal no existe");
+        }
 
         return Response::json([
             "mensaje" => "",
             // "sucursales" => \App\Http\Resources\AccountResource::collection(Account::take(20)->get()),
-            "sucursales" => \App\Branchoffice::where("nombre", "!=", "Ninguna")->where("idEmpresa", $data["idEmpresa"])->take(50)->get()
-        ], 201);
+            "data" => $data,
+            "sucursales" => $retornarSucursales ? \App\Branchoffice::where("nombre", "!=", "Ninguna")->where("idEmpresa", $requestData["idEmpresa"])->take(50)->get() : []
+        ]);
     }
 
     /**

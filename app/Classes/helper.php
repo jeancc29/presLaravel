@@ -1,6 +1,6 @@
 <?php
 namespace App\Classes;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class Helper{
 
@@ -48,12 +48,12 @@ class Helper{
         }
     }
 
-    public static function validatePermissions($usuario, $entidad, $permisos){
+    public static function validatePermissions($usuario, string $entidad, Array $permisos){
        $permisos = implode(",", $permisos);
        $idUsuario = $usuario["id"];
 
         $datos = \DB::select("
-            select 
+            select
                 pu.id
             from users u
             inner join permission_user pu on pu.idUsuario = u.id
@@ -75,8 +75,8 @@ class Helper{
     public static function validateMonto($caja, $monto = 0){
         // if($caja == null)
         //     return true;
-        
-        return 
+
+        return
         $caja["balance"] < abs($monto)
         ?
         abort(404, "La caja no tiene monto suficiente.")

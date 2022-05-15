@@ -44,11 +44,11 @@ Route::post('/boxes/transacciones', 'BoxController@transacciones');
 Route::post('/boxes/close', 'BoxController@close');
 Route::post('/boxes/showClosure', 'BoxController@showClosure');
 
-Route::post('/banks', 'BankController@index');
+Route::post('/banks', 'BankController@index')->name("banks");
 Route::post('/banks/store', 'BankController@store');
 Route::post('/banks/delete', 'BankController@destroy');
 
-Route::post('/accounts', 'AccountController@index');
+Route::post('/accounts', 'AccountController@index')->name("accounts");
 Route::post('/accounts/store', 'AccountController@store');
 Route::post('/accounts/delete', 'AccountController@destroy');
 
@@ -56,7 +56,7 @@ Route::post('/loans', 'LoanController@index')->name("loans.index");
 Route::post('/loans/indexAdd', 'LoanController@indexAdd')->name("loans.indexAdd");
 Route::post('/loans/testCustomFirst', 'LoanController@testCustomFirst')->name("loans.testCustomFirst");
 Route::get('/loans/search', 'LoanController@search');
-Route::post('/loans/show', 'LoanController@show');
+Route::post('/loans/show', 'LoanController@show')->name("loan.show");
 Route::post('/loans/store', 'LoanController@store');
 Route::post('/loans/delete', 'LoanController@destroy');
 
@@ -71,11 +71,11 @@ Route::post('/othersettings', 'OthersettingController@index')->name("othersettin
 Route::post('/othersettings/store', 'OthersettingController@store')->name("othersettings.store");
 
 
-Route::post('/roles', 'RoleController@index');
+Route::post('/roles', 'RoleController@index')->name("roles");
 Route::post('/roles/store', 'RoleController@store');
 Route::post('/roles/delete', 'RoleController@destroy');
 
-Route::post('/branchoffices', 'BranchofficeController@index');
+Route::post('/branchoffices', 'BranchofficeController@index')->name("branchoffices");
 Route::post('/branchoffices/store', 'BranchofficeController@store');
 Route::post('/branchoffices/delete', 'BranchofficeController@destroy');
 

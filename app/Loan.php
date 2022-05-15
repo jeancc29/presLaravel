@@ -7,36 +7,66 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     protected $fillable = [
-        "id", 
-        "idUsuario", 
-        "idCliente", 
-        "idTipoPlazo", 
-        "idTipoAmortizacion", 
-        "idCaja", 
-        "idEmpresa", 
-        "idCobrador", 
-        // "idGasto", 
-        // "idGarante", 
+        "id",
+        "idUsuario",
+        "idCliente",
+        "idTipoPlazo",
+        "idTipoAmortizacion",
+        "idCaja",
+        "idEmpresa",
+        "idCobrador",
+        // "idGasto",
+        // "idGarante",
         "idDesembolso",
-        "monto", 
-        "montoInteres", 
-        "porcentajeInteres", 
-        "porcentajeInteresAnual", 
-        "numeroCuotas", 
-        "fecha", 
-        "fechaPrimerPago", 
-        "codigo", 
-        "porcentajeMora", 
-        "diasGracia", 
-        "capitalTotal", 
-        "interesTotal", 
-        "capitalPendiente", 
-        "interesPendiente", 
-        "numeroCuotasPagadas", 
-        "fechaProximoPago", 
-        "status", 
-        "idRuta", 
+        "monto",
+        "montoInteres",
+        "porcentajeInteres",
+        "porcentajeInteresAnual",
+        "numeroCuotas",
+        "fecha",
+        "fechaPrimerPago",
+        "codigo",
+        "porcentajeMora",
+        "diasGracia",
+        "capitalTotal",
+        "interesTotal",
+        "capitalPendiente",
+        "interesPendiente",
+        "numeroCuotasPagadas",
+        "fechaProximoPago",
+        "status",
+        "idRuta",
     ];
+
+    public function user()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\User', 'id', 'idUsuario');
+    }
+
+    public function customer()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Customer', 'id', 'idCliente');
+    }
+
+    public function amortizations()
+    {
+        //Modelo, foreign key, foreign key, local key, local key
+        return $this->hasMany('App\Amortization', 'idPrestamo');
+    }
+
+    public function type()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipo');
+    }
+
+    public function box()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Box', 'id', 'idCaja');
+    }
 
     public static function customAll($idEmpresa, $arrayOfLimit = array(0, 50))
     {
@@ -100,12 +130,16 @@ class Loan extends Model
                 ) AS a
                 WHERE a.pagada = 0 AND a.diasAtrasados >= 0
             ) as cuotasAtrasadas
-        FROM loans l 
-        INNER JOIN customers c ON c.id = l.idCliente 
-        INNER JOIN types t ON t.id = l.idTipoAmortizacion 
-        LEFT JOIN boxes b ON b.id = l.idCaja 
+        FROM loans l
+        INNER JOIN customers c ON c.id = l.idCliente
+        INNER JOIN types t ON t.id = l.idTipoAmortizacion
+        LEFT JOIN boxes b ON b.id = l.idCaja
         WHERE l.idEmpresa = $idEmpresa AND l.status = 1
         LIMIT $limit ");
+
+//        Loan::query()
+//            ->selectRaw("")
+//            ->join("")
     }
 
     public static function customFirst($idPrestamo)
@@ -114,11 +148,11 @@ class Loan extends Model
         // return "limit $limit";
         // (
         //     SELECT
-        //         SUM(amortizations.cuota) 
-        //     FROM amortizations 
-        //     WHERE 
-        //         amortizations.idPrestamo = l.id 
-        //     AND 
+        //         SUM(amortizations.cuota)
+        //     FROM amortizations
+        //     WHERE
+        //         amortizations.idPrestamo = l.id
+        //     AND
         //         DATEDIFF(CURDATE(), a.fecha) >= 0
         // ) AS balancePendiente,
         $prestamo = \DB::select("
@@ -138,7 +172,7 @@ class Loan extends Model
             (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
             l.codigo,
             (
-                SELECT 
+                SELECT
                     JSON_ARRAYAGG(
                         JSON_OBJECT(
                             'id', d.id,
@@ -295,17 +329,17 @@ class Loan extends Model
                 WHERE a.pagada = 0 AND a.diasAtrasados >= 0
             ) as cuotasAtrasadas,
             (
-                SELECT 
+                SELECT
                 IF(
                     r.id IS NULL,
                     NULL,
                     JSON_OBJECT('id', r.id, 'descripcion', r.descripcion)
                 )
             ) as ruta
-        FROM loans l 
-        INNER JOIN customers c ON c.id = l.idCliente 
-        INNER JOIN types t ON t.id = l.idTipoAmortizacion 
-        LEFT JOIN boxes b ON b.id = l.idCaja 
+        FROM loans l
+        INNER JOIN customers c ON c.id = l.idCliente
+        INNER JOIN types t ON t.id = l.idTipoAmortizacion
+        LEFT JOIN boxes b ON b.id = l.idCaja
         LEFT JOIN types tp ON tp.id = l.idTipoPlazo
         LEFT JOIN users uc ON uc.id = l.idCobrador
         LEFT JOIN guarantors g ON g.idPrestamo = l.id
@@ -342,7 +376,7 @@ class Loan extends Model
             l.status,
             (SELECT IF(b.id IS NOT NULL, JSON_OBJECT('id', b.id, 'descripcion', b.descripcion), null)) as caja,
             (
-                SELECT 
+                SELECT
                     JSON_ARRAYAGG(
                         JSON_OBJECT(
                             'id', a.id,
@@ -397,11 +431,11 @@ class Loan extends Model
                         )
                     AS a
             ) AS amortizaciones
-        FROM loans l 
-        INNER JOIN customers c ON c.id = l.idCliente 
-        INNER JOIN types t ON t.id = l.idTipoAmortizacion 
-        LEFT JOIN types tp ON tp.id = l.idTipoPlazo 
-        LEFT JOIN boxes b ON b.id = l.idCaja 
+        FROM loans l
+        INNER JOIN customers c ON c.id = l.idCliente
+        INNER JOIN types t ON t.id = l.idTipoAmortizacion
+        LEFT JOIN types tp ON tp.id = l.idTipoPlazo
+        LEFT JOIN boxes b ON b.id = l.idCaja
         LEFT JOIN documents d on d.id = c.idDocumento
         LEFT JOIN contacts co on co.id = c.idContacto
         WHERE l.id = $idPrestamo");
@@ -516,7 +550,7 @@ class Loan extends Model
                     GROUP BY a.id
                 ) AS a
             HAVING pagada = 0
-            order by a.id asc 
+            order by a.id asc
             limit 1
         ");
 
@@ -551,7 +585,7 @@ class Loan extends Model
         // ");
 
         $cuota = \DB::select("
-        SELECT 
+        SELECT
             COUNT(cuotasPagadas.id) as cuotas
         FROM (
             SELECT
@@ -588,9 +622,9 @@ class Loan extends Model
                         GROUP BY a.id
                     ) AS a
                 HAVING pagada = 1
-                order by a.id asc 
+                order by a.id asc
             ) AS cuotasPagadas
-        
+
         ");
 
         return (count($cuota) > 0) ? $cuota[0]->cuotas : null;
@@ -618,14 +652,14 @@ class Loan extends Model
                     INNER JOIN paydetails ON pays.id = paydetails.idPago
                     GROUP BY pays.idPrestamo
                     UNION
-                    SELECT 
+                    SELECT
                         0 AS capital,
                         0 AS interes,
                         $idPrestamo AS interes
                 ) as pays
                 GROUP BY pays.idPrestamo
             ) pays on l.id = pays.idPrestamo
-            SET 
+            SET
                 l.capitalPendiente = l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0),
                 l.interesPendiente = l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0),
                 l.numeroCuotasPagadas = $numeroCuotasPagadas,
@@ -633,6 +667,6 @@ class Loan extends Model
                 $fechaProximoPago
             WHERE l.id = $idPrestamo
         ");
-    
+
     }
 }

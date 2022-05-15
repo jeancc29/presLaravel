@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Account;
+use App\Http\Resources\AccountResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 
 class AccountController extends Controller
@@ -16,22 +17,47 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $data = request()->validate([
+        $requestData = request()->validate([
             'data.id' => '',
             'data.nombres' => '',
             'data.usuario' => '',
             'data.apiKey' => '',
             'data.idEmpresa' => '',
+            'data.idCuenta' => '',
+            'data.idBanco' => '',
+            'data.retornarBancos' => '',
+            'data.retornarCuentas' => '',
         ])["data"];
 
-        \App\Classes\Helper::validateApiKey($data["apiKey"]);
-        \App\Classes\Helper::validatePermissions($data, "Cuentas", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($requestData["apiKey"]);
+        \App\Classes\Helper::validatePermissions($requestData, "Cuentas", ["Ver"]);
+
+        $id = $requestData["idCuenta"] ?? null;
+        $idBanco = $requestData["idBanco"] ?? null;
+        $retornarBancos = $requestData["retornarBancos"] ?? false;
+        $retornarCuentas = $requestData["retornarCuentas"] ?? false;
+
+        $data = null;
+        $bancos = [];
+
+        if($id != null) {
+            $data = Account::query()->where(["idEmpresa" => $requestData["idEmpresa"], "id" => $id])->first();
+            if($data == null)
+                throw new \Exception("La cuenta no existe");
+        }
+
+        if($retornarBancos){
+            $bancos = \App\Bank::where(["idEmpresa" => $requestData["idEmpresa"], "estado" => 1])->take(50)->get();
+            if(count($bancos) == 0)
+                throw new \Exception("No se puenden crear cuentas sin bancos registrados, debe registrar al menos un banco");
+        }
 
         return Response::json([
             "mensaje" => "",
-            "cuentas" => \App\Http\Resources\AccountResource::collection(Account::where("idEmpresa", $data["idEmpresa"])->take(20)->get()),
-            "bancos" => \App\Bank::where("idEmpresa", $data["idEmpresa"])->take(50)->get()
-        ], 201);
+            "cuentas" => $retornarCuentas ? \App\Http\Resources\AccountResource::collection(Account::where("idEmpresa", $requestData["idEmpresa"])->when($idBanco != null, function($q) use($idBanco){$q->where("idBanco", $idBanco);})->take(20)->get()) : [],
+            "bancos" => $bancos,
+            "data" => $data != null ? new AccountResource($data) : null
+        ]);
     }
 
     /**
