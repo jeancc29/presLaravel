@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Customer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 use Intervention\Image\Facades\Image;
 
 class CustomerController extends Controller
@@ -16,24 +16,52 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $datos = request()->validate([
+        $requestData = request()->validate([
             'data.id' => '',
             'data.nombres' => '',
             'data.usuario' => '',
             'data.apiKey' => '',
             'data.idEmpresa' => '',
+            'data.sexo' => '',
         ])["data"];
 
         // return Response::json([
         //     "message" => $data["apiKey"]
         // ], 404);
 
-        \App\Classes\Helper::validateApiKey($datos["apiKey"]);
-        \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Ver"]);
+        \App\Classes\Helper::validateApiKey($requestData["apiKey"]);
+        \App\Classes\Helper::validatePermissions($requestData, "Clientes", ["Ver"]);
+
+        $sexo = $requestData["sexo"] ?? null;
+        $nacionalidad = $requestData["sexo"] ?? null;
+
+        $data = Customer::query()
+            ->selectRaw("
+                customers.id,
+                customers.foto AS foto,
+                customers.nombres,
+                customers.apellidos,
+                (SELECT SUM(loans.capitalPendiente) FROM loans WHERE loans.status = 1 AND loans.idCliente = customers.id) AS capitalPendiente,
+                (SELECT JSON_OBJECT('id', contacts.id, 'telefono', contacts.telefono, 'extension', contacts.extension, 'celular', contacts.celular, 'correo', contacts.correo, 'fax', contacts.fax, 'facebook', contacts.facebook, 'instagram', contacts.instagram)) AS contacto,
+                (SELECT
+                    JSON_OBJECT(
+                        'id', documents.id,
+                        'descripcion', documents.descripcion,
+                        'idTipo', documents.idTipo,
+                        'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = documents.idTipo)
+                    )
+                ) AS documento
+            ")
+            ->join("documents", "documents.id", "=", "customers.idDocumento")
+            ->join("contacts", "contacts.id", "=", "customers.idContacto")
+            ->when($sexo != null, function($q) use($sexo){$q->whereSexo($sexo);})
+            ->get();
+
+
 
         return Response::json([
             'mensaje' => '',
-            'clientes' => Customer::customAll($datos["idEmpresa"]),
+            'clientes' => $data,
         ], 200);
     }
 
@@ -67,7 +95,7 @@ class CustomerController extends Controller
         ], 200);
     }
 
-   
+
 
     public function search()
     {
@@ -78,12 +106,12 @@ class CustomerController extends Controller
 
         // \App\Classes\Helper::validateApiKey($data["usuario"]["apiKey"]);
         // \App\Classes\Helper::validatePermissions($data["usuario"], "Clientes", ["Guardar"]);
-        
+
         $searchTerm = $data["datos"];
         $clientes = Customer::
             query()
-            ->where('idEmpresa', '=', $data["idEmpresa"]) 
-            ->where('nombres', 'LIKE', "%{$searchTerm}%") 
+            ->where('idEmpresa', '=', $data["idEmpresa"])
+            ->where('nombres', 'LIKE', "%{$searchTerm}%")
             ->orWhere('apellidos', 'LIKE', "%{$searchTerm}%")
             ->select("id", "nombres", "apellidos", "idDocumento", "idRuta")
             ->limit(10)
@@ -143,7 +171,7 @@ class CustomerController extends Controller
             // 'horaCierre' => 'required',
             // 'sorteos' => 'required',
             // 'loterias' => '',
-    
+
         ])["data"];
         // $datos["foto"] = substr($datos["foto"], strpos($datos["foto"], ",")+1);
 
@@ -152,7 +180,7 @@ class CustomerController extends Controller
         //     'clientes' => "hey culooooooooooooooooooooooooooooooooooooooo"
         // ], 201);
 
-        
+
         try {
             \DB::beginTransaction();
             // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
@@ -165,7 +193,7 @@ class CustomerController extends Controller
             // return Response::json([
             //     "errores" => 0,
             //     'mensaje' => 'Se ha guardado el culooooooooooooo',
-            //     'clientes' => Customer::orderBy("id", "desc")->get() 
+            //     'clientes' => Customer::orderBy("id", "desc")->get()
             // ], 201);
             if($customer != null){
                 $documento = \App\Document::updateOrCreate(
@@ -194,7 +222,7 @@ class CustomerController extends Controller
                         "correo" => $datos["contacto"]["correo"],
                         "facebook" => $datos["contacto"]["facebook"],
                         "instagram" => $datos["contacto"]["instagram"],
-                    ],
+                    ]
                 );
 
                 //Trabajo
@@ -209,7 +237,7 @@ class CustomerController extends Controller
                             "numero" => $datos["trabajo"]["direccion"]["numero"],
                         ]
                     );
-    
+
                     $contactoTrabajo = \App\Contact::updateOrCreate(
                         ["id" => $datos["trabajo"]["contacto"]["id"]],
                         [
@@ -220,9 +248,9 @@ class CustomerController extends Controller
                             "facebook" => $datos["trabajo"]["contacto"]["facebook"],
                             "instagram" => $datos["trabajo"]["contacto"]["instagram"],
                             "fax" => $datos["trabajo"]["contacto"]["fax"],
-                        ],
+                        ]
                     );
-    
+
                     $trabajo = \App\Job::updateOrCreate(
                         ["id" => $datos["trabajo"]["id"]],
                         [
@@ -233,7 +261,7 @@ class CustomerController extends Controller
                             "fechaIngreso" => $datos["trabajo"]["fechaIngreso"],
                             "idDireccion" => $direccionTrabajo->id,
                             "idContacto" => $contactoTrabajo->id,
-                        ],
+                        ]
                     );
                 }
 
@@ -247,7 +275,7 @@ class CustomerController extends Controller
                             "idCiudad" => $datos["negocio"]["direccion"]["ciudad"]["id"],
                         ]
                     );
-    
+
                     $negocio = \App\Business::updateOrCreate(
                         ["id" => $datos["negocio"]["id"]],
                         [
@@ -255,7 +283,7 @@ class CustomerController extends Controller
                             "tipo" => $datos["negocio"]["tipo"],
                             "tiempoExistencia" => $datos["negocio"]["tiempoExistencia"],
                             "idDireccion" => $direccionNegocio->id,
-                        ],
+                        ]
                     );
                 }
 
@@ -274,7 +302,7 @@ class CustomerController extends Controller
                 //Cliente
                 if($fotoPerfil != null)
                     $customer->foto = $fotoPerfil;
-                    
+
                 $customer->nombres = $datos["nombres"];
                 $customer->apellidos = $datos["apellidos"];
                 $customer->apodo = $datos["apodo"];
@@ -295,7 +323,7 @@ class CustomerController extends Controller
                 $customer->idRuta = isset($datos["ruta"]) ? $datos["ruta"]["id"] : null;
                 $customer->save();
             }else{
-                
+
                 $documento = \App\Document::updateOrCreate(
                     ["id" => $datos["documento"]["id"]],
                     [
@@ -304,7 +332,7 @@ class CustomerController extends Controller
                     ]
                 );
 
-                
+
 
                 $direccion = \App\Address::updateOrCreate(
                     ["id" => $datos["direccion"]["id"]],
@@ -324,7 +352,7 @@ class CustomerController extends Controller
                         "correo" => $datos["contacto"]["correo"],
                         "facebook" => $datos["contacto"]["facebook"],
                         "instagram" => $datos["contacto"]["instagram"],
-                    ],
+                    ]
                 );
 
                 //Trabajo
@@ -339,7 +367,7 @@ class CustomerController extends Controller
                             "numero" => $datos["trabajo"]["direccion"]["numero"],
                         ]
                     );
-    
+
                     $contactoTrabajo = \App\Contact::updateOrCreate(
                         ["id" => $datos["trabajo"]["contacto"]["id"]],
                         [
@@ -350,9 +378,9 @@ class CustomerController extends Controller
                             "facebook" => $datos["trabajo"]["contacto"]["facebook"],
                             "instagram" => $datos["trabajo"]["contacto"]["instagram"],
                             "fax" => $datos["trabajo"]["contacto"]["fax"],
-                        ],
+                        ]
                     );
-    
+
                     $trabajo = \App\Job::updateOrCreate(
                         ["id" => $datos["trabajo"]["id"]],
                         [
@@ -363,7 +391,7 @@ class CustomerController extends Controller
                             "fechaIngreso" => $datos["trabajo"]["fechaIngreso"],
                             "idDireccion" => $direccionTrabajo->id,
                             "idContacto" => $contactoTrabajo->id,
-                        ],
+                        ]
                     );
                 }
 
@@ -377,7 +405,7 @@ class CustomerController extends Controller
                             "idCiudad" => $datos["negocio"]["direccion"]["ciudad"]["id"],
                         ]
                     );
-    
+
                     $negocio = \App\Business::updateOrCreate(
                         ["id" => $datos["negocio"]["id"]],
                         [
@@ -385,16 +413,16 @@ class CustomerController extends Controller
                             "tipo" => $datos["negocio"]["tipo"],
                             "tiempoExistencia" => $datos["negocio"]["tiempoExistencia"],
                             "idDireccion" => $direccionNegocio->id,
-                        ],
+                        ]
                     );
                 }
-                
+
 
                 //Cliente
                 $fotoPerfil = null;
                 if(isset($datos["foto"]))
                     $fotoPerfil = $this->guardarFoto($datos["foto"], $documento->descripcion);
-                
+
                 $customer = Customer::create([
                     "foto" => $fotoPerfil,
                     "nombres" => $datos["nombres"],
@@ -438,7 +466,7 @@ class CustomerController extends Controller
             abort(402, $th->getMessage());
         }
 
-        
+
     }
 
     // public function guardarFoto($base64, $documento){
@@ -446,12 +474,12 @@ class CustomerController extends Controller
     //     $safeName = base64_decode($documento) . \Str::random(12).'.'.'png';
     //     $folderName = \App\Classes\Helper::path();
     //     // $destinationPath = public_path() . $folderName;
-    //     Image::make(file_get_contents($base64))->save($folderName.$safeName); 
+    //     Image::make(file_get_contents($base64))->save($folderName.$safeName);
     //     // $success = file_put_contents($folderName.$safeName, $file);
     //     return $safeName;
     // }
 
-    
+
     public function guardarFoto($base64Image, $documento){
         $realImage = base64_decode($base64Image);
         $safeName = $documento . time() .'.'.'png';
@@ -525,7 +553,7 @@ class CustomerController extends Controller
             $data = Customer::where(["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
             if($data == null)
                 abort(402, "El cliente no existe");
-                
+
             $data->delete();
             \DB::commit();
             return Response::json([
@@ -537,6 +565,6 @@ class CustomerController extends Controller
             \DB::rollback();
             abort(402, $th->getMessage());
         }
-        
+
     }
 }

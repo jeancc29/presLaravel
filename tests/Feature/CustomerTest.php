@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Classes\Helper;
+use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -47,8 +49,8 @@ class CustomerTest extends TestCase
             "data" => [
                 "id" => 1,
                 "usuario" => "jeancc29",
-                "idEmpresa" => 1, 
-                "idCliente" => 1, 
+                "idEmpresa" => 1,
+                "idCliente" => 1,
                 "usuario" => ["usuario" => "jeancc29", "id" => 1, "idEmpresa" => 1],
                 // "tipo" => \App\Classes\Helper::stdClassToArray($tipo),
                 "pago" => ["descripcion" => "Caja1", "id" => 1, "balance" => 100],
@@ -101,7 +103,7 @@ class CustomerTest extends TestCase
     public function test_destroy_customer()
     {
         $this->withoutExceptionHandling();
-        
+
         $response = $this->post(route('customers.destroy'), [
             "data" => [
                 "usuario" => ["usuario" => "jeancc29", "id" => 1, "idEmpresa" => 1],
@@ -131,5 +133,24 @@ class CustomerTest extends TestCase
         $this->assertTrue(count($data) > 0);
     }
 
-    
+    public function test_customers()
+    {
+        $this->withoutExceptionHandling();
+
+        $usuario = User::first();
+        $apiKey = Helper::jwtEncode($usuario->usuario);
+
+        $data = [];
+        $data= $usuario->toArray();
+        $data["apiKey"] = $apiKey;
+
+        $response = $this->post(route('customers.index'), ["data" => $data]);
+        $array = Helper::stdClassToArray($response->getData());
+        $json = json_encode($array);
+        echo $json;
+
+        $response->assertStatus(200);
+    }
+
+
 }

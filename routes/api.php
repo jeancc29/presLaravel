@@ -29,7 +29,7 @@ Route::post('/routes', 'RouteController@index');
 Route::post('/routes/store', 'RouteController@store');
 Route::post('/routes/delete', 'RouteController@destroy');
 
-Route::post('/expenses', 'ExpenseController@index');
+Route::post('/expenses', 'ExpenseController@index')->name("expenses");
 Route::post('/expenses/store', 'ExpenseController@store')->name("expenses.store");;
 Route::post('/expenses/delete', 'ExpenseController@destroy')->name("expenses.destroy");
 
