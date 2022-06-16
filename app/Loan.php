@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
@@ -36,6 +37,7 @@ class Loan extends Model
         "fechaProximoPago",
         "status",
         "idRuta",
+        "cuota",
     ];
 
     public function user()
@@ -56,10 +58,28 @@ class Loan extends Model
         return $this->hasMany('App\Amortization', 'idPrestamo');
     }
 
+    public function pays()
+    {
+        //Modelo, foreign key, foreign key, local key, local key
+        return $this->hasMany('App\Pay', 'idPrestamo');
+    }
+
     public function type()
     {
         //Modelo, foreign key, local key
         return $this->hasOne('App\Type', 'id', 'idTipo');
+    }
+
+    public function termType()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipoPlazo');
+    }
+
+    public function amortizationType()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipoAmortizacion');
     }
 
     public function box()
@@ -488,7 +508,7 @@ class Loan extends Model
 
 
 
-    public static function fechaProximoPago($idPrestamo)
+    public static function getFechaProximoPago($idPrestamo)
     {
         //Modelo, foreign key, local key
         // return $this->hasOne('App\Job', 'id', 'idTrabajo');
@@ -515,46 +535,58 @@ class Loan extends Model
         //     ) AS a
         // ");
 
-        $cuota = \DB::select("
-        SELECT
-            a.id,
-            IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
-            a.numeroCuota,
-            a.capital,
-            a.interes,
-            a.cuota,
-            a.capitalRestante,
-            a.interesRestante,
-            a.capitalRestante + a.interesRestante as cuotaRestante,
-            a.fecha,
-            a.diasAtrasados,
-            a.mora
-            FROM   (
-                    SELECT
-                        a.id,
-                        a.numeroCuota,
-                        a.capital,
-                        a.interes,
-                        IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
-                        IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
-                        IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
-                        a.cuota,
-                        a.fecha,
-                        DATEDIFF(CURDATE(), a.fecha) diasAtrasados
-                    FROM amortizations a
-                    INNER JOIN loans l on l.id = a.idPrestamo
-                    LEFT JOIN (
-                        SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
-                    ) pd on pd.idAmortizacion = a.id
-                    WHERE a.idPrestamo = $idPrestamo
-                    GROUP BY a.id
-                ) AS a
-            HAVING pagada = 0
-            order by a.id asc
-            limit 1
-        ");
+//        $cuota = \DB::select("
+//        SELECT
+//            a.id,
+//            IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
+//            a.numeroCuota,
+//            a.capital,
+//            a.interes,
+//            a.cuota,
+//            a.capitalRestante,
+//            a.interesRestante,
+//            a.capitalRestante + a.interesRestante as cuotaRestante,
+//            a.fecha,
+//            a.diasAtrasados,
+//            a.mora
+//            FROM   (
+//                    SELECT
+//                        a.id,
+//                        a.numeroCuota,
+//                        a.capital,
+//                        a.interes,
+//                        IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
+//                        IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
+//                        IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
+//                        a.cuota,
+//                        a.fecha,
+//                        DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+//                    FROM amortizations a
+//                    INNER JOIN loans l on l.id = a.idPrestamo
+//                    LEFT JOIN (
+//                        SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+//                    ) pd on pd.idAmortizacion = a.id
+//                    WHERE a.idPrestamo = $idPrestamo
+//                    GROUP BY a.id
+//                ) AS a
+//            HAVING pagada = 0
+//            order by a.id asc
+//            limit 1
+//        ");
 
-        return (count($cuota) > 0) ? $cuota[0]->fecha : null;
+        $cuotasPagadas = Amortization::where(["idPrestamo" => $idPrestamo, "pagada" => 0])->orderBy("id", "asc")->first();
+//        return (count($cuota) > 0) ? $cuota[0]->fecha : null;
+        return $cuotasPagadas != null ? $cuotasPagadas->fecha : null;
+    }
+
+    public static function updateDiasAtrasados($idPrestamo){
+        $fechaCuotaNoPagada = Amortization::query()->select("fecha")->where(["idPrestamo" => $idPrestamo, "pagada" => 0])->orderBy("id")->first();
+        $date = Carbon::parse($fechaCuotaNoPagada->fecha . ' 00:00:00');
+        $now = new Carbon(Carbon::now()->toDateString() . " 00:00:00");
+
+        //Si la diferencia $diff es un numero > 0 eso quiere decir que hay dias atrasados, de lo contrario no.
+        $diff = $date->diffInDays($now, false);
+        Loan::query()->whereId($idPrestamo)->update(["diasAtrasados" => $diff > 0 ? $diff : 0]);
     }
 
     public static function numeroCuotasPagadas($idPrestamo)
@@ -584,89 +616,121 @@ class Loan extends Model
         //     ) AS a
         // ");
 
-        $cuota = \DB::select("
-        SELECT
-            COUNT(cuotasPagadas.id) as cuotas
-        FROM (
-            SELECT
-                a.id,
-                IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
-                a.numeroCuota,
-                a.capital,
-                a.interes,
-                a.cuota,
-                a.capitalRestante,
-                a.interesRestante,
-                a.capitalRestante + a.interesRestante as cuotaRestante,
-                a.fecha,
-                a.diasAtrasados,
-                a.mora
-                FROM   (
-                        SELECT
-                            a.id,
-                            a.numeroCuota,
-                            a.capital,
-                            a.interes,
-                            IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
-                            IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
-                            IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
-                            a.cuota,
-                            a.fecha,
-                            DATEDIFF(CURDATE(), a.fecha) diasAtrasados
-                        FROM amortizations a
-                        INNER JOIN loans l on l.id = a.idPrestamo
-                        LEFT JOIN (
-                            SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
-                        ) pd on pd.idAmortizacion = a.id
-                        WHERE a.idPrestamo = $idPrestamo
-                        GROUP BY a.id
-                    ) AS a
-                HAVING pagada = 1
-                order by a.id asc
-            ) AS cuotasPagadas
+//        $cuota = \DB::select("
+//        SELECT
+//            COUNT(cuotasPagadas.id) as cuotas
+//        FROM (
+//            SELECT
+//                a.id,
+//                IF(a.capitalRestante <= 0 AND a.interesRestante <= 0 AND a.mora <= 0, 1, 0) as pagada,
+//                a.numeroCuota,
+//                a.capital,
+//                a.interes,
+//                a.cuota,
+//                a.capitalRestante,
+//                a.interesRestante,
+//                a.capitalRestante + a.interesRestante as cuotaRestante,
+//                a.fecha,
+//                a.diasAtrasados,
+//                a.mora
+//                FROM   (
+//                        SELECT
+//                            a.id,
+//                            a.numeroCuota,
+//                            a.capital,
+//                            a.interes,
+//                            IF(sum(pd.capital) is NULL, a.capital, a.capital - sum(pd.capital)) AS capitalRestante,
+//                            IF(sum(pd.interes) is NULL, a.interes, a.interes - sum(pd.interes)) AS interesRestante,
+//                            IF(sum(pd.mora) is NULL, (SELECT mora(l.id, a.id)), (SELECT mora(l.id, a.id)) - sum(pd.mora)) as mora,
+//                            a.cuota,
+//                            a.fecha,
+//                            DATEDIFF(CURDATE(), a.fecha) diasAtrasados
+//                        FROM amortizations a
+//                        INNER JOIN loans l on l.id = a.idPrestamo
+//                        LEFT JOIN (
+//                            SELECT * FROM paydetails WHERE paydetails.idPago in (SELECT pays.id FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1)
+//                        ) pd on pd.idAmortizacion = a.id
+//                        WHERE a.idPrestamo = $idPrestamo
+//                        GROUP BY a.id
+//                    ) AS a
+//                HAVING pagada = 1
+//                order by a.id asc
+//            ) AS cuotasPagadas
+//
+//        ");
 
-        ");
+        $cuotasPagadas = Amortization::where(["idPrestamo" => $idPrestamo, "pagada" => 1])->count();
+        return $cuotasPagadas;
+    }
 
-        return (count($cuota) > 0) ? $cuota[0]->cuotas : null;
+    public function getCuotasAtrasadas(){
+        $now = Carbon::now();
+        if($this->diasGracia > 0)
+            $now->addDays($this->diasGracia);
+
+        return Amortization::query()->where(["idPrestamo" => $this->id, "pagada" => 0])->where("fecha", "<=", $now->toDateString())->count();
     }
 
     public static function updatePendientes($idPrestamo){
-        $fechaProximoPago = Loan::fechaProximoPago($idPrestamo);
+        $loan = Loan::query()->find($idPrestamo);
+        $cuotasAtrasadas = $loan->getCuotasAtrasadas();
+        $fechaProximoPago = Loan::getFechaProximoPago($idPrestamo);
         $numeroCuotasPagadas = Loan::numeroCuotasPagadas($idPrestamo);
-        $fechaProximoPago = isset($fechaProximoPago) ? "l.fechaProximoPago = '$fechaProximoPago'" : "l.fechaProximoPago = null";
-        \DB::select("
-            UPDATE loans AS l
-            LEFT JOIN (
-                SELECT
-                    SUM(pays.capital) AS capital,
-                    SUM(pays.interes) AS interes,
-                    pays.idPrestamo
-                FROM (
-                    SELECT
-                        SUM(paydetails.capital) AS capital,
-                        SUM(paydetails.interes) AS interes,
-                        pays.idPrestamo
-                    FROM (
-                        SELECT * FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1
-                    ) as pays
-                    INNER JOIN paydetails ON pays.id = paydetails.idPago
-                    GROUP BY pays.idPrestamo
-                    UNION
-                    SELECT
-                        0 AS capital,
-                        0 AS interes,
-                        $idPrestamo AS interes
-                ) as pays
-                GROUP BY pays.idPrestamo
-            ) pays on l.id = pays.idPrestamo
-            SET
-                l.capitalPendiente = l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0),
-                l.interesPendiente = l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0),
-                l.numeroCuotasPagadas = $numeroCuotasPagadas,
-                l.status = IF(l.status = 0, l.status, IF(l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0) <= 0 AND l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0) <= 0, 2, 1)),
-                $fechaProximoPago
-            WHERE l.id = $idPrestamo
-        ");
+        Loan::updateDiasAtrasados($idPrestamo);
+
+//        $fechaProximoPago = isset($fechaProximoPago) ? "l.fechaProximoPago = '$fechaProximoPago'" : "l.fechaProximoPago = null";
+
+        $capitalInteresPendiente = Amortization::query()->selectRaw("sum(capitalPendiente) capitalPendiente, sum(interesPendiente) interesPendiente")->where(["idPrestamo" => $idPrestamo])->get();
+
+        $estadoPrestamo = 0;
+
+        //Status... Desactivado == 0, Pagado == 2, Activo == 1
+        if($loan->status != 0)
+            $estadoPrestamo = $capitalInteresPendiente[0]->capitalPendiente == 0 && $capitalInteresPendiente[0]->interesPendiente == 0 ? 2 : 1;
+
+        $loan->capitalPendiente = $capitalInteresPendiente[0]->capitalPendiente;
+        $loan->interesPendiente = $capitalInteresPendiente[0]->interesPendiente;
+        $loan->numeroCuotasPagadas = $numeroCuotasPagadas;
+        $loan->cuotasAtrasadas = $cuotasAtrasadas;
+        if($fechaProximoPago != null)
+            $loan->fechaProximoPago = "$fechaProximoPago";
+
+        $loan->status = $estadoPrestamo;
+        $loan->save();
+
+//        \DB::select("
+//            UPDATE loans AS l
+//            LEFT JOIN (
+//                SELECT
+//                    SUM(pays.capital) AS capital,
+//                    SUM(pays.interes) AS interes,
+//                    pays.idPrestamo
+//                FROM (
+//                    SELECT
+//                        SUM(paydetails.capital) AS capital,
+//                        SUM(paydetails.interes) AS interes,
+//                        pays.idPrestamo
+//                    FROM (
+//                        SELECT * FROM pays WHERE pays.idPrestamo = $idPrestamo AND pays.status = 1
+//                    ) as pays
+//                    INNER JOIN paydetails ON pays.id = paydetails.idPago
+//                    GROUP BY pays.idPrestamo
+//                    UNION
+//                    SELECT
+//                        0 AS capital,
+//                        0 AS interes,
+//                        $idPrestamo AS interes
+//                ) as pays
+//                GROUP BY pays.idPrestamo
+//            ) pays on l.id = pays.idPrestamo
+//            SET
+//                l.capitalPendiente = l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0),
+//                l.interesPendiente = l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0),
+//                l.numeroCuotasPagadas = $numeroCuotasPagadas,
+//                l.status = IF(l.status = 0, l.status, IF(l.capitalTotal - IF(pays.capital IS NOT NULL, pays.capital, 0) <= 0 AND l.interesTotal - IF(pays.interes IS NOT NULL, pays.interes, 0) <= 0, 2, 1)),
+//                $fechaProximoPago
+//            WHERE l.id = $idPrestamo
+//        ");
 
     }
 }

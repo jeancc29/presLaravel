@@ -21,10 +21,15 @@ class CreateAmortizationsTable extends Migration
             $table->double("cuota", 20, 2);
             $table->double("interes", 20, 2);
             $table->double("capital", 20, 2);
+            $table->double("mora", 20, 2)->default(0);
             $table->double("capitalRestante", 20, 2);
             $table->double("capitalSaldado", 20, 2)->default(0);
             $table->double("interesSaldado", 20, 2)->default(0);
-            $table->date("fecha", 20, 2);
+            $table->double("capitalPendiente", 20, 2)->default(0);
+            $table->double("interesPendiente", 20, 2)->default(0);
+            $table->double("moraPendiente", 20, 2)->default(0);
+            $table->boolean("pagada")->default(0);
+            $table->date("fecha");
             $table->timestamps();
         });
     }

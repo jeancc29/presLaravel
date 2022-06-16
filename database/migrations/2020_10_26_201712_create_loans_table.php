@@ -29,7 +29,11 @@ class CreateLoansTable extends Migration
             $table->decimal("interesTotal", 20, 2)->default(0);
             $table->decimal("capitalPendiente", 20, 2)->default(0);
             $table->decimal("interesPendiente", 20, 2)->default(0);
+            $table->decimal("mora", 20, 2)->default(0);
+            $table->decimal("cuota", 20, 2)->default(0);
             $table->integer("numeroCuotasPagadas")->default(0);
+            $table->integer("cuotasAtrasadas")->default(0);
+            $table->integer("diasAtrasados")->default(0);
             $table->integer("status")->default(1);
             $table->date("fechaProximoPago")->nullable();
             $table->unsignedInteger("idEmpresa");

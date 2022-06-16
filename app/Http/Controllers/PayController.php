@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Amortization;
 use App\Pay;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class PayController extends Controller
 {
@@ -76,18 +77,17 @@ class PayController extends Controller
         // foreach ($detalle as $datos["pago"]["detalle"]) {
         //     \App\Paydetail::updateOrCreate(
         //         ["idPago" => $pago->id, "idAmortizacion" => ]
-                
+
         //     );
         // }
 
-        
 
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -109,6 +109,8 @@ class PayController extends Controller
             'data.capitalPagado' => '',
             'data.interesPagado' => '',
             'data.numeroCuotaPagada' => '',
+            'data.esAbonoACapital' => '',
+            'data.tipoAbono' => '',
         ])["data"];
 
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
@@ -140,6 +142,28 @@ class PayController extends Controller
                     "mora" => $detalle["mora"],
                 ]
             );
+
+            //Actualizamos los metadatos(capitalPendiente, interesPendiente, moraPendiente, pagada) de la tabla amortizacion
+//            $a = Amortization::query()->where(["id" => $detalle["idAmortizacion"], "idPrestamo" => $datos["idPrestamo"]])->first();
+//            if($detalle["capital"] > 0)
+//                $a->capitalPendiente -= $detalle["capital"];
+//
+//            //Si el interes pagado == 0 eso quiere decir que el descuento establecido pagó el total del interes
+//            if($detalle["interes"] == 0)
+//                $a->interesPendiente = 0;
+//            elseif($detalle["interes"] > 0)
+//                $a->interesPendiente -= $detalle["interes"];
+//            //Si la mora pagado == 0 eso quiere decir que el descuento establecido pagó el total de la mora
+//            if($detalle["mora"] == 0)
+//                $a->moraPendiente = 0;
+//            elseif($detalle["mora"] > 0)
+//                $a->moraPendiente -= $detalle["mora"];
+//
+////            if($a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0)
+//            $a->pagada = $a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0;
+//
+//            $a->save();
+            Amortization::updatePendientes($datos["idPrestamo"], $detalle);
         }
 
         // $prestamo = \App\Loan::whereId($data->idPrestamo)->first();
@@ -160,7 +184,7 @@ class PayController extends Controller
 
         return Response::json([
             "data" => Pay::customFirst($data->id),
-            "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo),
+//            "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo),
             "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()),
             "configuracionRecibo" => \App\Receipt::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()
             // "capitalPendiente" => $prestamo->capitalPendiente,
@@ -172,7 +196,7 @@ class PayController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Pay  $pay
+     * @param \App\Pay $pay
      * @return \Illuminate\Http\Response
      */
     public function show(Pay $pay)
@@ -183,7 +207,7 @@ class PayController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Pay  $pay
+     * @param \App\Pay $pay
      * @return \Illuminate\Http\Response
      */
     public function edit(Pay $pay)
@@ -194,8 +218,8 @@ class PayController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Pay  $pay
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Pay $pay
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Pay $pay)
@@ -206,7 +230,7 @@ class PayController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Pay  $pay
+     * @param \App\Pay $pay
      * @return \Illuminate\Http\Response
      */
     public function destroy(Pay $pay)
@@ -220,16 +244,17 @@ class PayController extends Controller
             \DB::beginTransaction();
             // \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
             \App\Classes\Helper::validatePermissions($datos["usuario"], "Pagos", ["Eliminar"]);
-    
+
             $data = Pay::whereId([$datos["pago"]["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]])->first();
-            if($data != null){
+            if ($data != null) {
                 $data->status = 0;
                 $data->save();
                 $this->deleteTransaction($data->id);
+                Amortization::updatePendientes($data->idPrestamo, $data->detail, true);
             }
 
             \App\Loan::updatePendientes($data->idPrestamo);
-    
+
             \DB::commit();
             return Response::json([
                 "mensaje" => "Se ha eliminado correctamente",
@@ -243,7 +268,8 @@ class PayController extends Controller
         }
     }
 
-    public function deleteTransaction($idReferencia, $comentario = null){
+    public function deleteTransaction($idReferencia, $comentario = null)
+    {
         $tipo = \App\Type::where(["renglon" => "transaccion", "descripcion" => "Pago"])->first();
         \App\Transaction::cancel($tipo, $idReferencia, $comentario);
     }

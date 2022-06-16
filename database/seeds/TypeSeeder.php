@@ -67,7 +67,7 @@ class TypeSeeder extends Seeder
 
         \App\Type::updateOrCreate(["descripcion" => "Nuevo"], ["renglon" => "condicionGarantia"]);
         \App\Type::updateOrCreate(["descripcion" => "Usado"], ["renglon" => "condicionGarantia"]);
-        
+
         \App\Type::updateOrCreate(["descripcion" => "Sedan"], ["renglon" => "tipoVehiculo"]);
         \App\Type::updateOrCreate(["descripcion" => "Compacto"], ["renglon" => "tipoVehiculo"]);
         \App\Type::updateOrCreate(["descripcion" => "Jeepeta"], ["renglon" => "tipoVehiculo"]);
@@ -100,5 +100,8 @@ class TypeSeeder extends Seeder
         \App\Type::updateOrCreate(["descripcion" => "Negocio propio"], ["renglon" => "situacionLaboral"]);
         \App\Type::updateOrCreate(["descripcion" => "Pensionado"], ["renglon" => "situacionLaboral"]);
         \App\Type::updateOrCreate(["descripcion" => "Otros"], ["renglon" => "situacionLaboral"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Disminuir valor cuota"], ["renglon" => "abonoCapital"]);
+        \App\Type::updateOrCreate(["descripcion" => "Disminuir plazo"], ["renglon" => "abonoCapital"]);
     }
 }

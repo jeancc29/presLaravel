@@ -15,11 +15,22 @@ class PayResource extends JsonResource
     public function toArray($request)
     {
         // return parent::toArray($request);
-        // return [
-        //     "id" $this->id,
-        //     "fecha" $this->fecha,
-        //     "capital" $this->capital,
-        //     "interes" $this->interes,
-        // ]
+        $sumaCapitalInteresMoraDelDetallePago = $this->detail()->selectRaw("sum(capital) capital, sum(interes) interes, sum(mora) mora")->get();
+
+        return [
+             "id" => $this->id,
+             "concepto" => $this->concepto,
+             "cliente" => new CustomerSmallResource($this->customer),
+             "usuario" => $this->user,
+             "monto" => $this->monto,
+             "fecha" => $this->fecha,
+             "capital" => $sumaCapitalInteresMoraDelDetallePago[0]->capital,
+             "interes" => $sumaCapitalInteresMoraDelDetallePago[0]->interes,
+             "mora" => $sumaCapitalInteresMoraDelDetallePago[0]->mora,
+             "descuento" => $this->descuento,
+             "capitalPendiente" => $this->capitalPendiente,
+             "tipoPago" => $this->type,
+             "caja" => $this->box
+         ];
     }
 }

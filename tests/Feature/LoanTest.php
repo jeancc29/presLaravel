@@ -111,7 +111,7 @@ class LoanTest extends TestCase
         $data = [];
         $data["usuario"] = $usuario->toArray();
         $data["usuario"]["apiKey"] = $apiKey;
-        $data["id"] = 1;
+        $data["id"] = 4;
 
         $response = $this->post(route('loan.show'), ["data" => $data]);
         $array = Helper::stdClassToArray($response->getData());
