@@ -3,20 +3,20 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class Transaction extends Model
 {
     protected $fillable = [
-        'id', 
-        'idEmpresa', 
-        'idUsuario', 
-        'idCaja', 
-        'monto', 
-        'comentario', 
-        'status', 
-        'idTipo', 
-        'idTipoPago', 
+        'id',
+        'idEmpresa',
+        'idUsuario',
+        'idCaja',
+        'monto',
+        'comentario',
+        'status',
+        'idTipo',
+        'idTipoPago',
         'idReferencia'
     ];
 
@@ -24,10 +24,12 @@ class Transaction extends Model
         if($caja == null)
             return;
 
-            
+        if(!isset($caja))
+            return;
+
         $monto = (Transaction::isSum($tipo, $monto)) ? abs($monto) : \App\Classes\Helper::toNegative($monto);
-        
-        
+
+
         $arrayOfData = [
             "idEmpresa" => $usuario["idEmpresa"],
             "idUsuario" => $usuario["id"],
@@ -45,7 +47,7 @@ class Transaction extends Model
             $t = Transaction::create($arrayOfData);
             \App\Box::updateBalance($t->idCaja);
             return;
-        }      
+        }
 
         /// Si la transaccion existe pues validamos de que esta no este cerrada para poderla editar, de lo contrario pues no se
         /// podrá editar la transacccion
@@ -56,15 +58,15 @@ class Transaction extends Model
                     abort(402, "La caja ya ha sido cerrada");
                     return;
                 }
-            }  
-        }  
+            }
+        }
 
         // $t = Transaction::create($arrayOfData);
         if($monto < 0 && $caja["balance"] < abs($monto)){
             abort(402, "La caja no tiene monto suficiente");
             return;
         }
-        
+
 
         $t = Transaction::updateOrCreate(
             ["idReferencia" => $idReferencia, "idTipo" => $tipo["id"]],
@@ -97,7 +99,7 @@ class Transaction extends Model
             case 'Gasto':
                 $isSum = false;
                 break;
-            
+
             default:
                 # code...
                 $isSum = ($monto > 0) ? true : false;
@@ -110,7 +112,7 @@ class Transaction extends Model
         $t = Transaction::where(["idTipo" => $tipo->id, "idReferencia" => $idReferencia])->first();
         if($t == null)
             return;
-        
+
         if($t->status == 2){
             abort(402, "La caja ya ha sido cerrada, asi que no se puede cancelar la transacción.");
             return;
@@ -122,7 +124,7 @@ class Transaction extends Model
         $t->save();
 
         // $caja = \App\Box::whereId($t->idCaja)->first();
-        // $monto = ($t->monto < 0) ? abs($t->monto) : \App\Classes\Helper::toNegative($t->monto); 
+        // $monto = ($t->monto < 0) ? abs($t->monto) : \App\Classes\Helper::toNegative($t->monto);
         // $caja->balance += $monto;
 
         \App\Box::updateBalance($t->idCaja);

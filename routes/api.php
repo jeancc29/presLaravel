@@ -57,7 +57,7 @@ Route::post('/loans/indexAdd', 'LoanController@indexAdd')->name("loans.indexAdd"
 Route::post('/loans/testCustomFirst', 'LoanController@testCustomFirst')->name("loans.testCustomFirst");
 Route::get('/loans/search', 'LoanController@search');
 Route::post('/loans/show', 'LoanController@show')->name("loan.show");
-Route::post('/loans/store', 'LoanController@store');
+Route::post('/loans/store', 'LoanController@store')->name("loan.store");
 Route::post('/loans/delete', 'LoanController@destroy');
 
 Route::post('/loansettings', 'LoansettingController@index');
@@ -91,7 +91,7 @@ Route::post('/users/delete', 'UserController@destroy');
 Route::post('/users/get', 'UserController@get')->name("users.get");
 
 Route::post('/pays', 'PayController@index')->name("pays.index");
-Route::post('/pays/store', 'PayController@store');
+Route::post('/pays/store', 'PayController@store')->name("pays.store");
 Route::post('/pays/delete', 'PayController@destroy')->name("pays.destroy");
 
 Route::post('/dashboard', 'DashBoardController@index');

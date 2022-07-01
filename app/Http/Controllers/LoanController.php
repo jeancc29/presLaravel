@@ -7,6 +7,8 @@ use App\Http\Resources\LoanResource;
 use App\Http\Resources\LoanWithAmortizationResource;
 use App\Http\Resources\TypeResource;
 use App\Loan;
+use App\Type;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
@@ -199,7 +201,7 @@ class LoanController extends Controller
 
             // return Response::
 
-            try {
+//            try {
                 \DB::beginTransaction();
 
                 /// VALIDATE DATA
@@ -245,7 +247,7 @@ class LoanController extends Controller
                         "interesTotal" => $datos["interesTotal"],
                         "capitalPendiente" => $datos["capitalPendiente"],
                         "interesPendiente" => $datos["interesPendiente"],
-                        "cuota" => $datos["amortizaciones"][0]["cuota"],
+                        "cuota" => 0,
                         "fechaProximoPago" => $datos["fechaProximoPago"],
                         // "idUsuario" => $datos["usuario"]["id"],
                         "idEmpresa" => $datos["usuario"]["idEmpresa"],
@@ -259,7 +261,6 @@ class LoanController extends Controller
                         // "idCobrador" => $datos["cobrador"]["id"],
                         // "idGasto" => $gasto->id,
                         "idDesembolso" => $desembolso->id,
-                        "cuota" => $datos["amortizaciones"][0]["cuota"]
                     ]
                     );
 
@@ -289,14 +290,47 @@ class LoanController extends Controller
                         );
                     }
 
-                    \App\Amortization::where("id", ">", 0)->where("idPrestamo", $prestamo->id)->delete();
-                    foreach ($datos["amortizaciones"] as $amortizacion) {
+//                    \App\Amortization::where("id", ">", 0)->where("idPrestamo", $prestamo->id)->delete();
+//                    foreach ($datos["amortizaciones"] as $amortizacion) {
+//                        $montoDeLaCuotaDelPrestamo = $amortizacion["cuota"];
+//                        $a = \App\Amortization::updateOrCreate(
+//                            ["id" => $amortizacion["id"]],
+//                            [
+//                                "idPrestamo" => $prestamo->id,
+//                                "idTipo" => $amortizacion["tipo"]["id"],
+//                                "numeroCuota" => $amortizacion["numeroCuota"],
+//                                "cuota" => $amortizacion["cuota"],
+//                                "interes" => $amortizacion["interes"],
+//                                "capital" => $amortizacion["capital"],
+//                                "capitalRestante" => $amortizacion["capitalRestante"],
+//                                "capitalSaldado" => $amortizacion["capitalSaldado"],
+//                                "interesSaldado" => $amortizacion["interesSaldado"],
+//                                "fecha" => $amortizacion["fecha"],
+//                                "capitalPendiente" => $amortizacion["capital"],
+//                                "interesPendiente" => $amortizacion["interes"],
+//                            ]
+//                        );
+//                        $a->calculateMora($prestamo);
+//                    }
+
+                    $prestamo->amortizations()->delete();
+                    $amortizationCollection = collect();
+                    $diasExcluidos = count($datos["diasExcluidos"]) == 0 ? collect() : collect($datos["diasExcluidos"])->map(function($d){ return $d;});
+                    $tipoPlazo = Type::find($datos["tipoPlazo"]["id"]);
+                    $tipoAmortizacion = Type::find($datos["tipoAmortizacion"]["id"]);
+                    $fechaPrimerPago = new Carbon($datos["fechaPrimerPago"]);
+
+                    $amortizationCollection = Amortization::amortizar($prestamo->monto, $prestamo->porcentajeInteres, $prestamo->numeroCuotas, $tipoAmortizacion, $tipoPlazo, $fechaPrimerPago, $diasExcluidos);
+                    $prestamo->cuota = $amortizationCollection[0]["cuota"];
+                    $prestamo->save();
+
+                    foreach ($amortizationCollection as $amortizacion) {
                         $montoDeLaCuotaDelPrestamo = $amortizacion["cuota"];
-                        $a = \App\Amortization::updateOrCreate(
-                            ["id" => $amortizacion["id"]],
+                        $a = \App\Amortization::Create(
+//                            ["id" => $amortizacion["id"]],
                             [
                                 "idPrestamo" => $prestamo->id,
-                                "idTipo" => $amortizacion["tipo"]["id"],
+                                "idTipo" => $datos["tipoAmortizacion"]["id"],
                                 "numeroCuota" => $amortizacion["numeroCuota"],
                                 "cuota" => $amortizacion["cuota"],
                                 "interes" => $amortizacion["interes"],
@@ -312,8 +346,7 @@ class LoanController extends Controller
                         $a->calculateMora($prestamo);
                     }
 
-
-                    foreach ($datos["garantias"] as $garantia) {
+                foreach ($datos["garantias"] as $garantia) {
                         \App\Guarantee::updateOrCreate(
                             ["id" => $garantia["id"]],
                             [
@@ -357,11 +390,11 @@ class LoanController extends Controller
                         // "datos" => $datos,
 //                        "prestamo" => Loan::customFirst($prestamo->id)
                     ]);
-            } catch (\Throwable $th) {
-                //throw $th;
-                \DB::rollback();
-                abort(402, $th->getMessage());
-            }
+//            } catch (\Throwable $th) {
+//                //throw $th;
+//                \DB::rollback();
+//                abort(402, $th->getMessage());
+//            }
         // });
         // $lastPrestamo = Loan::latest('id')->where("idEmpresa", $datos["usuario"]["idEmpresa"])->first();
         // // $prestamo = \DB::select("select
@@ -443,7 +476,7 @@ class LoanController extends Controller
 
          return Response::json([
             "prestamo" => new LoanWithAmortizationResource($prestamo),
-            "tipos" => \App\Type::where("renglon", "desembolso")->cursor(),
+            "tipos" => \App\Type::whereIn("renglon", ["desembolso", "abonoCapital"])->cursor(),
             "cajas" => $cajas,
             "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $usuario->idEmpresa)->first()),
             "configuracionRecibo" => \App\Receipt::where("idEmpresa", $usuario->idEmpresa)->first()

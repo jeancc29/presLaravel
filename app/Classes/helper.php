@@ -1,5 +1,6 @@
 <?php
 namespace App\Classes;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Response;
 
 class Helper{
@@ -86,6 +87,26 @@ class Helper{
         :
         true
         ;
+    }
+
+    public static function getNextMonth(Carbon $date, int $dayOfTheMonth = null, int $monthsToAdd = 1) : Carbon{
+        $dateToReturn = $date->addMonthsNoOverflow($monthsToAdd);
+        $tmpDate = null;
+
+        if($dayOfTheMonth != null){
+            if($date->day != $dayOfTheMonth){
+                $tmpDate = $date;
+                $lastOfMonth = $tmpDate->lastOfMonth();
+                if($lastOfMonth->day >= $dayOfTheMonth)
+                    $dateToReturn = $date->day($dayOfTheMonth);
+                else
+                    $dateToReturn = $lastOfMonth;
+            }
+            else
+                $dateToReturn = $date;
+        }
+
+        return $dateToReturn;
     }
 
 }

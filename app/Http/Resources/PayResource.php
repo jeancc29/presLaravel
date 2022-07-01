@@ -15,7 +15,7 @@ class PayResource extends JsonResource
     public function toArray($request)
     {
         // return parent::toArray($request);
-        $sumaCapitalInteresMoraDelDetallePago = $this->detail()->selectRaw("sum(capital) capital, sum(interes) interes, sum(mora) mora")->get();
+        $sumaCapitalInteresMoraDelDetallePago = $this->esAbonoACapital ? null : $this->detail()->selectRaw("sum(capital) capital, sum(interes) interes, sum(mora) mora")->get();
 
         return [
              "id" => $this->id,
@@ -24,9 +24,9 @@ class PayResource extends JsonResource
              "usuario" => $this->user,
              "monto" => $this->monto,
              "fecha" => $this->fecha,
-             "capital" => $sumaCapitalInteresMoraDelDetallePago[0]->capital,
-             "interes" => $sumaCapitalInteresMoraDelDetallePago[0]->interes,
-             "mora" => $sumaCapitalInteresMoraDelDetallePago[0]->mora,
+             "capital" => $this->esAbonoACapital ? $this->monto : $sumaCapitalInteresMoraDelDetallePago[0]->capital,
+             "interes" => $this->esAbonoACapital ? 0 : $sumaCapitalInteresMoraDelDetallePago[0]->interes,
+             "mora" => $this->esAbonoACapital ? 0 : $sumaCapitalInteresMoraDelDetallePago[0]->mora,
              "descuento" => $this->descuento,
              "capitalPendiente" => $this->capitalPendiente,
              "tipoPago" => $this->type,

@@ -47,7 +47,7 @@ class LoanResource extends JsonResource
             "montoPrestado" => $this->monto,
             "porcentajeInteres" => $this->porcentajeInteres,
             "cuota" => $this->cuota,
-            "numeroCuotas" => $this->monto,
+            "numeroCuotas" => $this->numeroCuotas,
             "numeroCuotasPagadas" => $this->numeroCuotasPagadas,
             "balancePendiente" => $this->balancePendiente,
             "capitalPendiente" => $this->capitalPendiente,

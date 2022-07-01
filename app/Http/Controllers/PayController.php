@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Abonodetail;
 use App\Amortization;
+use App\Http\Resources\PayResource;
+use App\Loan;
 use App\Pay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -130,41 +133,95 @@ class PayController extends Controller
                 "comentario" => $datos["comentario"],
                 "concepto" => $datos["concepto"],
                 "fecha" => $datos["fecha"],
+                "esAbonoACapital" => $datos["esAbonoACapital"],
+                "idTipoAbonoACapital" => $datos["tipoAbono"] != null ? $datos["tipoAbono"]["descripcion"] : null
             ]
         );
 
-        foreach ($datos["detallepago"] as $detalle) {
-            $detalle = \App\Paydetail::updateOrCreate(
-                ["idPago" => $data->id, "idAmortizacion" => $detalle["idAmortizacion"]],
-                [
-                    "capital" => $detalle["capital"],
-                    "interes" => $detalle["interes"],
-                    "mora" => $detalle["mora"],
-                ]
-            );
+        if($datos["esAbonoACapital"]){
+            $prestamo = Loan::find($datos["idPrestamo"]);
+//            $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["monto"];
+//            $prestamo->save();
 
-            //Actualizamos los metadatos(capitalPendiente, interesPendiente, moraPendiente, pagada) de la tabla amortizacion
-//            $a = Amortization::query()->where(["id" => $detalle["idAmortizacion"], "idPrestamo" => $datos["idPrestamo"]])->first();
-//            if($detalle["capital"] > 0)
-//                $a->capitalPendiente -= $detalle["capital"];
-//
-//            //Si el interes pagado == 0 eso quiere decir que el descuento establecido pagó el total del interes
-//            if($detalle["interes"] == 0)
-//                $a->interesPendiente = 0;
-//            elseif($detalle["interes"] > 0)
-//                $a->interesPendiente -= $detalle["interes"];
-//            //Si la mora pagado == 0 eso quiere decir que el descuento establecido pagó el total de la mora
-//            if($detalle["mora"] == 0)
-//                $a->moraPendiente = 0;
-//            elseif($detalle["mora"] > 0)
-//                $a->moraPendiente -= $detalle["mora"];
-//
-////            if($a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0)
-//            $a->pagada = $a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0;
-//
-//            $a->save();
-            Amortization::updatePendientes($datos["idPrestamo"], $detalle);
+            $amortizacionesNoPagadas = $prestamo->amortizations()->wherePagada(0)->orderBy("id")->get();
+            foreach ($amortizacionesNoPagadas as $a){
+                Abonodetail::query()->create([
+                    "numeroCuota" => $a->numeroCuota,
+                    "idTipo" => $a->idTipo,
+                    "idPrestamo" => $a->idPrestamo,
+                    "idPago" => $data->id,
+                    "cuota" => $a->cuota,
+                    "interes" => $a->interes,
+                    "capital" => $a->capital,
+                    "capitalRestante" => $a->capitalRestante,
+                    "capitalSaldado" => $a->capitalSaldado,
+                    "interesSaldado" => $a->interesSaldado,
+                    "fecha" => $a->fecha,
+                    "capitalPendiente" => $a->capitalPendiente,
+                    "interesPendiente" => $a->interesPendiente,
+                    "moraPendiente" => $a->moraPendiente,
+                    "pagada" => $a->pagada
+                ]);
+            }
+
+            if($datos["tipoAbono"]["descripcion"] == "Disminuir plazo"){
+                $amortizacionesAbono = Amortization::amortizar($prestamo->capitalPendiente - $datos["monto"], $prestamo->porcentajeInteres, $amortizacionesNoPagadas->count(), $prestamo->amortizationType, $prestamo->termType, null, null, $amortizacionesNoPagadas);
+                $ids = $amortizacionesAbono->pluck("id");
+                Amortization::query()->whereNotIn("id", $ids)->delete();
+                foreach ($amortizacionesAbono as $amortization){
+                    $amortization->save();
+                }
+                $prestamo->numeroCuotas = $prestamo->amortizations()->count();
+                $prestamo->save();
+            }else{
+                $amortizacionesAbono = Amortization::amortizar($prestamo->capitalPendiente - $datos["monto"], $prestamo->porcentajeInteres, $amortizacionesNoPagadas->count(), $prestamo->amortizationType, $prestamo->termType);
+                for($c=0; $c < $amortizacionesAbono->count(); $c++){
+                    $amortizacionesNoPagadas[$c]->interes = $amortizacionesAbono[$c]["interes"];
+                    $amortizacionesNoPagadas[$c]->capital = $amortizacionesAbono[$c]["capital"];
+                    $amortizacionesNoPagadas[$c]->cuota = $amortizacionesAbono[$c]["cuota"];
+                    $amortizacionesNoPagadas[$c]->capitalRestante = $amortizacionesAbono[$c]["capitalRestante"];
+                    $amortizacionesNoPagadas[$c]->capitalSaldado = $amortizacionesAbono[$c]["capitalSaldado"];
+                    $amortizacionesNoPagadas[$c]->interesSaldado = $amortizacionesAbono[$c]["interesSaldado"];
+                    $amortizacionesNoPagadas[$c]->interesPendiente = $amortizacionesAbono[$c]["interes"];
+                    $amortizacionesNoPagadas[$c]->capitalPendiente = $amortizacionesAbono[$c]["capital"];
+                    $amortizacionesNoPagadas[$c]->save();
+                }
+            }
+
         }
+        else
+            foreach ($datos["detallepago"] as $detalle) {
+                $detalle = \App\Paydetail::updateOrCreate(
+                    ["idPago" => $data->id, "idAmortizacion" => $detalle["idAmortizacion"]],
+                    [
+                        "capital" => $detalle["capital"],
+                        "interes" => $detalle["interes"],
+                        "mora" => $detalle["mora"],
+                    ]
+                );
+
+                //Actualizamos los metadatos(capitalPendiente, interesPendiente, moraPendiente, pagada) de la tabla amortizacion
+    //            $a = Amortization::query()->where(["id" => $detalle["idAmortizacion"], "idPrestamo" => $datos["idPrestamo"]])->first();
+    //            if($detalle["capital"] > 0)
+    //                $a->capitalPendiente -= $detalle["capital"];
+    //
+    //            //Si el interes pagado == 0 eso quiere decir que el descuento establecido pagó el total del interes
+    //            if($detalle["interes"] == 0)
+    //                $a->interesPendiente = 0;
+    //            elseif($detalle["interes"] > 0)
+    //                $a->interesPendiente -= $detalle["interes"];
+    //            //Si la mora pagado == 0 eso quiere decir que el descuento establecido pagó el total de la mora
+    //            if($detalle["mora"] == 0)
+    //                $a->moraPendiente = 0;
+    //            elseif($detalle["mora"] > 0)
+    //                $a->moraPendiente -= $detalle["mora"];
+    //
+    ////            if($a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0)
+    //            $a->pagada = $a->capitalPendiente <= 0 && $a->interesPendiente <= 0 && $a->moraPendiente <= 0;
+    //
+    //            $a->save();
+                Amortization::updatePendientes($datos["idPrestamo"], $detalle);
+            }
 
         // $prestamo = \App\Loan::whereId($data->idPrestamo)->first();
         // $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["capitalPagado"];
@@ -183,7 +240,8 @@ class PayController extends Controller
         \App\Transaction::make($datos["usuario"], $datos["caja"], $data->monto, $tipo, $data->id, $datos["concepto"]);
 
         return Response::json([
-            "data" => Pay::customFirst($data->id),
+//            "data" => Pay::customFirst($data->id),
+            "data" => new PayResource($data),
 //            "prestamo" => \App\Loan::customFirstAmortizaciones($data->idPrestamo),
             "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()),
             "configuracionRecibo" => \App\Receipt::where("idEmpresa", $datos["usuario"]["idEmpresa"])->first()

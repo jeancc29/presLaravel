@@ -581,6 +581,8 @@ class Loan extends Model
 
     public static function updateDiasAtrasados($idPrestamo){
         $fechaCuotaNoPagada = Amortization::query()->select("fecha")->where(["idPrestamo" => $idPrestamo, "pagada" => 0])->orderBy("id")->first();
+        if($fechaCuotaNoPagada == null)
+            return;
         $date = Carbon::parse($fechaCuotaNoPagada->fecha . ' 00:00:00');
         $now = new Carbon(Carbon::now()->toDateString() . " 00:00:00");
 
