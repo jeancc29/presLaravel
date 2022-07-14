@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Pay extends Model
 {
     protected $fillable = [
-        "id", "idUsuario", "idCaja", "idEmpresa", "idCliente", "idPrestamo", "idTipoPago", "monto", "descuento", "devuelta", "comentario", "concepto", "status", "fecha", "esAbonoACapital"
+        "id", "idUsuario", "idCaja", "idEmpresa", "idCliente", "idPrestamo", "idTipoPago", "monto", "descuento", "devuelta", "comentario", "concepto", "status", "fecha", "esAbonoACapital", "idTipoAbonoACapital", "esRenegociacion", "idRenegociacion"
     ];
 
     public function user()
@@ -40,10 +40,33 @@ class Pay extends Model
         return $this->hasOne('App\Type', 'id', 'idTipoPago');
     }
 
+    public function loan()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Loan', 'id', 'idPrestamo');
+    }
+
     public function detail()
     {
         //Modelo, foreign key, foreign key, local key, local key
         return $this->hasMany('App\Paydetail', 'idPago');
+    }
+    public function abonodetail()
+    {
+        //Modelo, foreign key, foreign key, local key, local key
+        return $this->hasMany('App\Abonodetail', 'idPago');
+    }
+
+    public function capitalPaymentType()
+    {
+        //Modelo, foreign key, foreign key, local key, local key
+        return $this->hasMany('App\Type', 'idTipoAbonoACapital');
+    }
+
+    public function renegotiation()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Renegotiation', 'id', 'idRenegociacion');
     }
 
     public static function customAll($idEmpresa, $idPrestamo = null, $arrayOfLimit = array(0, 50))

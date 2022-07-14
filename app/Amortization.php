@@ -835,18 +835,18 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
     return $fecha;
 }
 
-    public static function abonoACapitalDisminuirPlazo(Loan $prestamo, float $montoAbono) : Collection{
-        $capitalPendiente = $prestamo->capitalPendiente - $montoAbono;
-
-        echo "\n\ncapitalSinAbono: " . $prestamo->capitalPendiente . " capitaConAbono: " . $capitalPendiente;
-
-        $amortizationsToReturn = collect();
-        $amortizations = Amortization::query()->where(["idPrestamo" => $prestamo->id, "pagado" => 0])->get();
-        for ($c = 0; $c < $amortizations->count(); $c++){
-            if($c == 0) {
-                $amortizations[$c]->capitalRestante = $amortizations[$c]->capitalRestante - $montoAbono;
-            }
-        }
-    }
+//    public static function abonoACapitalDisminuirPlazo(Loan $prestamo, float $montoAbono) : Collection{
+//        $capitalPendiente = $prestamo->capitalPendiente - $montoAbono;
+//
+//        echo "\n\ncapitalSinAbono: " . $prestamo->capitalPendiente . " capitaConAbono: " . $capitalPendiente;
+//
+//        $amortizationsToReturn = collect();
+//        $amortizations = Amortization::query()->where(["idPrestamo" => $prestamo->id, "pagado" => 0])->get();
+//        for ($c = 0; $c < $amortizations->count(); $c++){
+//            if($c == 0) {
+//                $amortizations[$c]->capitalRestante = $amortizations[$c]->capitalRestante - $montoAbono;
+//            }
+//        }
+//    }
 
 }

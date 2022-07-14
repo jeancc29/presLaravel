@@ -30,12 +30,15 @@ class CreatePaysTable extends Migration
             $table->date("fecha");
             $table->integer("status")->default(1);
             $table->boolean("esAbonoACapital")->default(0);
+            $table->boolean("esRenegociacion")->default(0);
+            $table->unsignedBigInteger("idRenegociacion")->nullable();
             $table->timestamps();
 
             $table->foreign('idCliente')->references('id')->on('customers');
             $table->foreign('idPrestamo')->references('id')->on('loans');
             $table->foreign('idEmpresa')->references('id')->on('companies');
             $table->foreign('idTipoAbonoACapital')->references('id')->on('companies');
+//            $table->foreign("idRenegociacion")->references("id")->on("renegotiations");
 
         });
     }

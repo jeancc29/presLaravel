@@ -7,6 +7,10 @@ use App\Http\Resources\LoanResource;
 use App\Http\Resources\LoanWithAmortizationResource;
 use App\Http\Resources\TypeResource;
 use App\Loan;
+use App\Pay;
+use App\Paydetail;
+use App\Renegotiation;
+use App\Renegotiationdetail;
 use App\Type;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -187,6 +191,7 @@ class LoanController extends Controller
             'data.usuario' => '',
             'data.amortizaciones' => '',
             'data.ruta' => '',
+            'data.esRenegociacion' => '',
         ])["data"];
 
 
@@ -195,7 +200,11 @@ class LoanController extends Controller
         //     "message" => "La caja no tiene monto suficiente. {$datos["caja"]["balance"]}",
         // ], 404);
 
-        $prestamo = null;
+        $amortizationsNeedToUpdate = false;
+        $prestamo = Loan::query()->find($datos["id"]);
+        $montoEntregadoDeLaRenegociacion = 0;
+
+
 
         // \DB::transaction(function() use($datos){
 
@@ -210,7 +219,96 @@ class LoanController extends Controller
                 \App\Box::validateMonto($datos["caja"], $datos["monto"]);
 
                 /// VALIDATE DATA TO EDIT
+                if(!$datos["esRenegociacion"])
                 $this->validateDataCanBeEdited($datos);
+
+                if($prestamo != null){
+                    if($prestamo->id != $datos["id"] || ($prestamo->id == $datos["id"] && ($prestamo->numeroCuotas != $datos["numeroCuotas"] || $prestamo->porcentajeInteres != $datos["porcentajeInteres"] || $prestamo->idTipoAmortizacion != $datos["tipoAmortizacion"]["id"] || $prestamo->idTipoPlazo != $datos["tipoPlazo"]["id"])))
+                        $amortizationsNeedToUpdate = true;
+
+                    if($datos["esRenegociacion"]) {
+                        $montoEntregadoDeLaRenegociacion = $datos["monto"] - $prestamo->capitalPendiente;
+                        $amortizationsNeedToUpdate = true;
+
+                        if($datos["monto"] <= $prestamo->capitalPendiente)
+                            throw new \Exception("El monto a renegociar debe ser mayor que el capital pendiente del prestamo");
+
+                        $renegotiation = Renegotiation::query()->create(
+//                            ["idPrestamo" => $prestamo->id],
+                            [
+                                "idPrestamo" => $prestamo->id,
+                                "idUsuario" => $datos["usuario"]["id"],
+                                "monto" => $prestamo->monto,
+                                "porcentajeInteres" => $prestamo->porcentajeInteres,
+                                "porcentajeInteresAnual" => $prestamo->porcentajeInteresAnual,
+                                "montoInteres" => $prestamo->montoInteres,
+                                "numeroCuotas" => $prestamo->numeroCuotas,
+                                "fecha" => $prestamo->fecha,
+                                "fechaPrimerPago" => $prestamo->fechaPrimerPago,
+                                "porcentajeMora" => $prestamo->porcentajeMora,
+                                "diasGracia" => $prestamo->diasGracia,
+                                "capitalTotal" => $prestamo->capitalTotal,
+                                "interesTotal" => $prestamo->interesTotal,
+                                "capitalPendiente" => $prestamo->capitalPendiente,
+                                "interesPendiente" => $prestamo->interesPendiente,
+                                "mora" => $prestamo->mora,
+                                "cuota" => $prestamo->cuota,
+                                "numeroCuotasPagadas" => $prestamo->numeroCuotasPagadas,
+                                "cuotasAtrasadas" => $prestamo->cuotasAtrasadas,
+                                "diasAtrasados" => $prestamo->diasAtrasados,
+                                "fechaProximoPago" => $prestamo->fechaProximoPago,
+                                "idTipoPlazo" => $prestamo->idTipoPlazo,
+                                "idTipoAmortizacion" => $prestamo->idTipoAmortizacion
+                            ]
+                        );
+
+                        $idsPagos = $prestamo->pays()->where("status", "!=", 0)->where("esAbonoACapital", 0)->where("esRenegociacion", 0)->get()->pluck("id");
+                        $amortizations = $prestamo->amortizations()->when(count($idsPagos) > 0, function($q) use($idsPagos){
+                            $q->whereNotIn("id", Paydetail::query()->whereIn("idPago", $idsPagos)->select("idAmortizacion")->pluck("idAmortizacion"));
+                        })->get();
+
+                        foreach ($amortizations as $amortization) {
+                            Renegotiationdetail::query()->create(
+//                                ["idPrestamo" => $prestamo->id, "idRenegociacion" => $renegotiation->id, "numeroCuota" => $amortization->numeroCuota],
+                                [
+                                    "idRenegociacion" => $renegotiation->id,
+                                    "idPrestamo" => $prestamo->id,
+                                    "numeroCuota" => $amortization->numeroCuota,
+                                    "cuota" => $amortization->cuota,
+                                    "interes" => $amortization->interes,
+                                    "capital" => $amortization->capital,
+                                    "mora" => $amortization->mora,
+                                    "capitalRestante" => $amortization->capitalRestante,
+                                    "capitalSaldado" => $amortization->capitalSaldado,
+                                    "interesSaldado" => $amortization->interesSaldado,
+                                    "capitalPendiente" => $amortization->capitalPendiente,
+                                    "interesPendiente" => $amortization->interesPendiente,
+                                    "moraPendiente" => $amortization->moraPendiente,
+                                    "pagada" => $amortization->pagada,
+                                    "fecha" => $amortization->fecha,
+                                    "idTipo" => $amortization->idTipo,
+                                ]
+                            );
+                        }
+
+                        Pay::query()->updateOrCreate(
+                            ["idRenegociacion" => $renegotiation->id],
+                            [
+                                "idUsuario" => $datos["usuario"]["id"],
+                                "idCliente" => $prestamo->idCliente,
+                                "idPrestamo" => $prestamo->id,
+                                "idEmpresa" => $prestamo->idEmpresa,
+                                "idTipoPago" => $datos["desembolso"]["tipo"]["id"],
+                                "monto" => $montoEntregadoDeLaRenegociacion,
+                                "concepto" => "REENGANCHE",
+                                "idRenegociacion" => $renegotiation->id,
+                                "fecha" => Carbon::now()->toDateString(),
+                                "esRenegociacion" => 1
+                            ]
+                        );
+                    }
+                }else
+                    $amortizationsNeedToUpdate = true;
 
                 /// BEGIN THE PROCESS TO CREATE
                 $desembolso = \App\Disbursement::updateOrCreate(
@@ -245,9 +343,8 @@ class LoanController extends Controller
                         "diasGracia" => $datos["diasGracia"],
                         "capitalTotal" => $datos["capitalTotal"],
                         "interesTotal" => $datos["interesTotal"],
-                        "capitalPendiente" => $datos["capitalPendiente"],
+                        "capitalPendiente" => $datos["esRenegociacion"] ? $datos["monto"] : $datos["capitalPendiente"],
                         "interesPendiente" => $datos["interesPendiente"],
-                        "cuota" => 0,
                         "fechaProximoPago" => $datos["fechaProximoPago"],
                         // "idUsuario" => $datos["usuario"]["id"],
                         "idEmpresa" => $datos["usuario"]["idEmpresa"],
@@ -313,37 +410,44 @@ class LoanController extends Controller
 //                        $a->calculateMora($prestamo);
 //                    }
 
-                    $prestamo->amortizations()->delete();
-                    $amortizationCollection = collect();
-                    $diasExcluidos = count($datos["diasExcluidos"]) == 0 ? collect() : collect($datos["diasExcluidos"])->map(function($d){ return $d;});
-                    $tipoPlazo = Type::find($datos["tipoPlazo"]["id"]);
-                    $tipoAmortizacion = Type::find($datos["tipoAmortizacion"]["id"]);
-                    $fechaPrimerPago = new Carbon($datos["fechaPrimerPago"]);
+                    if($amortizationsNeedToUpdate){
+                        $idsPagos = $prestamo->pays()->where("status", "!=", 0)->where("esAbonoACapital", 0)->where("esRenegociacion", 0)->get()->pluck("id");
+                        $prestamo->amortizations()->when(count($idsPagos) > 0, function($q) use($idsPagos){
+                            $q->whereNotIn("id", Paydetail::query()->whereIn("idPago", $idsPagos)->select("idAmortizacion")->pluck("idAmortizacion"));
+                        })->delete();
+                        $amortizationCollection = collect();
+                        $diasExcluidos = count($datos["diasExcluidos"]) == 0 ? collect() : collect($datos["diasExcluidos"])->map(function($d){ return $d;});
+                        $tipoPlazo = Type::find($datos["tipoPlazo"]["id"]);
+                        $tipoAmortizacion = Type::find($datos["tipoAmortizacion"]["id"]);
+                        $fechaPrimerPago = $prestamo->id == $datos["id"] ? new Carbon($prestamo->fechaProximoPago) : new Carbon($datos["fechaPrimerPago"]);
+                        $montoAmortizacion = $prestamo->id == $datos["id"]  && !$datos["esRenegociacion"] ? $prestamo->capitalPendiente : $prestamo->monto;
 
-                    $amortizationCollection = Amortization::amortizar($prestamo->monto, $prestamo->porcentajeInteres, $prestamo->numeroCuotas, $tipoAmortizacion, $tipoPlazo, $fechaPrimerPago, $diasExcluidos);
-                    $prestamo->cuota = $amortizationCollection[0]["cuota"];
-                    $prestamo->save();
+                        $amortizationCollection = Amortization::amortizar($montoAmortizacion, $prestamo->porcentajeInteres, $prestamo->numeroCuotas, $tipoAmortizacion, $tipoPlazo, $fechaPrimerPago, $diasExcluidos);
+                        $prestamo->cuota = $amortizationCollection[0]["cuota"];
+                        $prestamo->save();
 
-                    foreach ($amortizationCollection as $amortizacion) {
-                        $montoDeLaCuotaDelPrestamo = $amortizacion["cuota"];
-                        $a = \App\Amortization::Create(
+                        foreach ($amortizationCollection as $amortizacion) {
+                            $montoDeLaCuotaDelPrestamo = $amortizacion["cuota"];
+                            $a = \App\Amortization::Create(
 //                            ["id" => $amortizacion["id"]],
-                            [
-                                "idPrestamo" => $prestamo->id,
-                                "idTipo" => $datos["tipoAmortizacion"]["id"],
-                                "numeroCuota" => $amortizacion["numeroCuota"],
-                                "cuota" => $amortizacion["cuota"],
-                                "interes" => $amortizacion["interes"],
-                                "capital" => $amortizacion["capital"],
-                                "capitalRestante" => $amortizacion["capitalRestante"],
-                                "capitalSaldado" => $amortizacion["capitalSaldado"],
-                                "interesSaldado" => $amortizacion["interesSaldado"],
-                                "fecha" => $amortizacion["fecha"],
-                                "capitalPendiente" => $amortizacion["capital"],
-                                "interesPendiente" => $amortizacion["interes"],
-                            ]
-                        );
-                        $a->calculateMora($prestamo);
+                                [
+                                    "idPrestamo" => $prestamo->id,
+                                    "idTipo" => $datos["tipoAmortizacion"]["id"],
+                                    "numeroCuota" => $amortizacion["numeroCuota"],
+                                    "cuota" => $amortizacion["cuota"],
+                                    "interes" => $amortizacion["interes"],
+                                    "capital" => $amortizacion["capital"],
+                                    "capitalRestante" => $amortizacion["capitalRestante"],
+                                    "capitalSaldado" => $amortizacion["capitalSaldado"],
+                                    "interesSaldado" => $amortizacion["interesSaldado"],
+                                    "fecha" => $amortizacion["fecha"],
+                                    "capitalPendiente" => $amortizacion["capital"],
+                                    "interesPendiente" => $amortizacion["interes"],
+                                ]
+                            );
+                            $a->calculateMora($prestamo);
+                        }
+
                     }
 
                 foreach ($datos["garantias"] as $garantia) {

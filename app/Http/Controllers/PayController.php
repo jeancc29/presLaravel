@@ -119,6 +119,13 @@ class PayController extends Controller
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Pagos", ["Guardar"]);
 
+        $prestamo = Loan::find($datos["idPrestamo"]);
+
+        if($datos["esAbonoACapital"]){
+            if($datos["tipoAbono"]["descripcion"] == "Disminuir plazo" && $prestamo->amortizationType->descripcion == "Capital al final")
+                throw new \Exception("Advertancia: no puede disminuir plazos cuando el tipo de prestamo es de Capital al final");
+        }
+
         $data = Pay::updateOrCreate(
             ["id" => $datos["id"]],
             [
@@ -139,7 +146,7 @@ class PayController extends Controller
         );
 
         if($datos["esAbonoACapital"]){
-            $prestamo = Loan::find($datos["idPrestamo"]);
+//            $prestamo = Loan::find($datos["idPrestamo"]);
 //            $prestamo->capitalPendiente = $prestamo->capitalPendiente - $datos["monto"];
 //            $prestamo->save();
 
@@ -167,7 +174,7 @@ class PayController extends Controller
             if($datos["tipoAbono"]["descripcion"] == "Disminuir plazo"){
                 $amortizacionesAbono = Amortization::amortizar($prestamo->capitalPendiente - $datos["monto"], $prestamo->porcentajeInteres, $amortizacionesNoPagadas->count(), $prestamo->amortizationType, $prestamo->termType, null, null, $amortizacionesNoPagadas);
                 $ids = $amortizacionesAbono->pluck("id");
-                Amortization::query()->whereNotIn("id", $ids)->delete();
+                Amortization::query()->where("idPrestamo", $prestamo->id)->whereNotIn("id", $ids)->delete();
                 foreach ($amortizacionesAbono as $amortization){
                     $amortization->save();
                 }
@@ -307,8 +314,112 @@ class PayController extends Controller
             if ($data != null) {
                 $data->status = 0;
                 $data->save();
+
+                if($data->esAbonoACapital){
+//                    if($data->capitalPaymentType->descripcion == 'Disminuir plazo'){
+                        $loan = $data->loan;
+                        $amortizationsFromAbonoDetail = $data->abonoDetail()->orderBy("numeroCuota")->get();
+
+                        //Eliminamos las amortizaciones que no han sido pagadas, para luego crear las amortizaciones antiguas
+                        $loan->amortizations()->wherePagada(0)->orderBy("id")->delete();
+
+                        //Creamos las amortizaciones antiguas
+                        foreach ($amortizationsFromAbonoDetail as $amortization) {
+                            $a = \App\Amortization::Create(
+                                [
+                                    "idPrestamo" => $loan->id,
+                                    "idTipo" => $loan->idTipoAmortizacion,
+                                    "numeroCuota" => $amortization->numeroCuota,
+                                    "cuota" => $amortization->cuota,
+                                    "interes" => $amortization->interes,
+                                    "capital" => $amortization->capital,
+                                    "capitalRestante" => $amortization->capitalRestante,
+                                    "capitalSaldado" => $amortization->capitalSaldado,
+                                    "interesSaldado" => $amortization->interesSaldado,
+                                    "fecha" => $amortization->fecha,
+                                    "capitalPendiente" => $amortization->capital,
+                                    "interesPendiente" => $amortization->interes,
+                                ]
+                            );
+                            $a->calculateMora($loan);
+                        }
+
+                        $loan->numeroCuotas = $loan->amortizations()->count();
+                        $loan->save();
+//                    }else{
+//
+//                    }
+                }
+
+                if($data->esRenegociacion){
+//                    if($data->capitalPaymentType->descripcion == 'Disminuir plazo'){
+                    $loan = $data->loan;
+                    $renegotiation = $data->renegotiation;
+
+                    $loan->monto = $renegotiation->monto;
+                    $loan->porcentajeInteres = $renegotiation->porcentajeInteres;
+                    $loan->porcentajeInteresAnual = $renegotiation->porcentajeInteresAnual;
+                    $loan->montoInteres = $renegotiation->montoInteres;
+                    $loan->numeroCuotas = $renegotiation->numeroCuotas;
+                    $loan->fecha = $renegotiation->fecha;
+                    $loan->fechaPrimerPago = $renegotiation->fechaPrimerPago;
+                    $loan->porcentajeMora = $renegotiation->porcentajeMora;
+                    $loan->diasGracia = $renegotiation->diasGracia;
+                    $loan->capitalTotal = $renegotiation->capitalTotal;
+                    $loan->interesTotal = $renegotiation->interesTotal;
+                    $loan->capitalPendiente = $renegotiation->capitalPendiente;
+                    $loan->interesPendiente = $renegotiation->interesPendiente;
+                    $loan->mora = $renegotiation->mora;
+                    $loan->cuota = $renegotiation->cuota;
+                    $loan->numeroCuotasPagadas = $renegotiation->numeroCuotasPagadas;
+                    $loan->cuotasAtrasadas = $renegotiation->cuotasAtrasadas;
+                    $loan->diasAtrasados = $renegotiation->diasAtrasados;
+                    $loan->fechaProximoPago = $renegotiation->fechaProximoPago;
+                    $loan->idTipoPlazo = $renegotiation->idTipoPlazo;
+                    $loan->idTipoAmortizacion = $renegotiation->idTipoAmortizacion;
+                    $loan->save();
+
+                    $amortizationsFromRenegotiationDetail = $renegotiation->detail()->orderBy("numeroCuota")->get();
+
+                    //Eliminamos las amortizaciones que no han sido pagadas, para luego crear las amortizaciones antiguas
+                    $loan->amortizations()->wherePagada(0)->orderBy("id")->delete();
+
+                    //Creamos las amortizaciones antiguas
+                    foreach ($amortizationsFromRenegotiationDetail as $amortization) {
+                        $a = \App\Amortization::Create(
+                            [
+                                "idPrestamo" => $loan->id,
+                                "idTipo" => $loan->idTipoAmortizacion,
+                                "numeroCuota" => $amortization->numeroCuota,
+                                "cuota" => $amortization->cuota,
+                                "interes" => $amortization->interes,
+                                "capital" => $amortization->capital,
+                                "capitalRestante" => $amortization->capitalRestante,
+                                "capitalSaldado" => $amortization->capitalSaldado,
+                                "interesSaldado" => $amortization->interesSaldado,
+                                "fecha" => $amortization->fecha,
+                                "capitalPendiente" => $amortization->capital,
+                                "interesPendiente" => $amortization->interes,
+                            ]
+                        );
+                        $a->calculateMora($loan);
+                    }
+
+                    $loan->numeroCuotas = $loan->amortizations()->count();
+                    $loan->save();
+//                    }else{
+//
+//                    }
+                }
+
                 $this->deleteTransaction($data->id);
-                Amortization::updatePendientes($data->idPrestamo, $data->detail, true);
+
+                if(!$data->esAbonoACapital){
+                    $detalle = $data->detail;
+                    foreach ($detalle as $detail) {
+                        Amortization::updatePendientes($data->idPrestamo, $detail, true);
+                    }
+                }
             }
 
             \App\Loan::updatePendientes($data->idPrestamo);

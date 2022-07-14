@@ -59,7 +59,7 @@ class LoanWithAmortizationResource extends JsonResource
             "status" => $this->status,
             "caja" => $this->box,
             "amortizaciones" => $this->amortizations,
-            "pagos" => PayResource::collection($this->pays()->orderBy("id", "desc")->get())
+            "pagos" => PayResource::collection($this->pays()->orderBy("id", "desc")->where("status", "!=", 0)->get())
         ];
     }
 }

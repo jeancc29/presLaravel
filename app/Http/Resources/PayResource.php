@@ -24,6 +24,8 @@ class PayResource extends JsonResource
              "usuario" => $this->user,
              "monto" => $this->monto,
              "fecha" => $this->fecha,
+             "esAbonoACapital" => $this->esAbonoACapital,
+             "esRenegociacion" => $this->esRenegociacion,
              "capital" => $this->esAbonoACapital ? $this->monto : $sumaCapitalInteresMoraDelDetallePago[0]->capital,
              "interes" => $this->esAbonoACapital ? 0 : $sumaCapitalInteresMoraDelDetallePago[0]->interes,
              "mora" => $this->esAbonoACapital ? 0 : $sumaCapitalInteresMoraDelDetallePago[0]->mora,

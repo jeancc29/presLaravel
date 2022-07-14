@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAbonodetailsTable extends Migration
+class CreateRenegotiationdetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class CreateAbonodetailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('abonodetails', function (Blueprint $table) {
+        Schema::create('renegotiationdetails', function (Blueprint $table) {
             $table->bigIncrements("id");
+            $table->unsignedBigInteger("idRenegociacion");
             $table->unsignedBigInteger("idPrestamo");
-            $table->unsignedBigInteger("idPago");
             $table->unsignedInteger("idTipo");
             $table->string("numeroCuota");
             $table->double("cuota", 20, 2);
@@ -33,7 +33,7 @@ class CreateAbonodetailsTable extends Migration
             $table->date("fecha");
             $table->timestamps();
 
-            $table->foreign("idPago")->references("id")->on("pays");
+            $table->foreign("idRenegociacion")->references("id")->on("renegotiations");
             $table->foreign("idPrestamo")->references("id")->on("loans");
             $table->foreign("idTipo")->references("id")->on("types");
 
@@ -47,6 +47,6 @@ class CreateAbonodetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('abonodetails');
+        Schema::dropIfExists('renegotiationdetails');
     }
 }
