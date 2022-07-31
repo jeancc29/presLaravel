@@ -16,14 +16,14 @@ class CreateBoxesTable extends Migration
         Schema::create('boxes', function (Blueprint $table) {
             $table->bigIncrements("id");
             $table->string("descripcion");
-            $table->decimal("balanceInicial", 20, 2)->default(0);
-            $table->decimal("balance", 20, 2)->default(0);
+            $table->decimal("balanceInicial", 20, 2)->nullable();
+            $table->decimal("balance", 20, 2)->nullable();
             $table->boolean("validarDesgloseEfectivo")->default(0);
             $table->boolean("validarDesgloseCheques")->default(0);
             $table->boolean("validarDesgloseTarjetas")->default(0);
             $table->boolean("validarDesgloseTransferencias")->default(0);
             $table->unsignedInteger("idEmpresa");
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

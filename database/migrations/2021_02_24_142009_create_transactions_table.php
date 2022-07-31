@@ -24,6 +24,7 @@ class CreateTransactionsTable extends Migration
             $table->unsignedInteger("idTipo");
             $table->unsignedInteger("idTipoPago")->nullable();
             $table->unsignedBigInteger("idReferencia")->nullable();
+            $table->unsignedInteger("idTipoIngresoEgreso")->nullable();
             $table->timestamps();
 
             $table->foreign("idUsuario")->references("id")->on("users");
@@ -31,6 +32,7 @@ class CreateTransactionsTable extends Migration
             $table->foreign("idCaja")->references("id")->on("boxes");
             $table->foreign("idTipo")->references("id")->on("types");
             $table->foreign("idTipoPago")->references("id")->on("types");
+            $table->foreign("idTipoIngresoEgreso")->references("id")->on("types");
         });
     }
 

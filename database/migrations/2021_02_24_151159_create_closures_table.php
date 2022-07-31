@@ -18,10 +18,13 @@ class CreateClosuresTable extends Migration
             $table->unsignedInteger("idEmpresa");
             $table->unsignedBigInteger("idUsuario");
             $table->unsignedBigInteger("idCaja");
-            $table->decimal("monto", 20, 2);
+            $table->decimal("totalSegunUsuario", 20, 2);
+            $table->decimal("totalSegunSistema", 20, 2);
+            $table->decimal("montoEfectivo", 20, 2);
             $table->decimal("montoCheques", 20, 2)->default(0);
             $table->decimal("montoTarjetas", 20, 2)->default(0);
             $table->decimal("montoTransferencias", 20, 2)->default(0);
+            $table->decimal("diferencia", 20, 2)->default(0);
             $table->string("comentario")->nullable();
             $table->integer("status")->default(1);
             $table->timestamps();

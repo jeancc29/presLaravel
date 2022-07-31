@@ -21,6 +21,7 @@ class CreateExpensesTable extends Migration
             $table->text("comentario")->nullable();
             $table->unsignedBigInteger("idCaja")->nullable();
             $table->unsignedInteger("idTipo"); //Tipo categoria
+            $table->unsignedInteger("idTipoPago"); //Tipo categoria
             $table->unsignedInteger("idUsuario");
             $table->unsignedInteger("idEmpresa");
             $table->timestamps();

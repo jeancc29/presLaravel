@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Abonodetail;
 use App\Amortization;
+use App\Box;
 use App\Http\Resources\PayResource;
 use App\Loan;
 use App\Pay;
@@ -119,6 +120,8 @@ class PayController extends Controller
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Pagos", ["Guardar"]);
 
+        $caja = isset($datos["caja"]) ? Box::find($datos["caja"]["id"]) : null;
+        Box::validateMonto($caja);
         $prestamo = Loan::find($datos["idPrestamo"]);
 
         if($datos["esAbonoACapital"]){
@@ -141,7 +144,7 @@ class PayController extends Controller
                 "concepto" => $datos["concepto"],
                 "fecha" => $datos["fecha"],
                 "esAbonoACapital" => $datos["esAbonoACapital"],
-                "idTipoAbonoACapital" => $datos["tipoAbono"] != null ? $datos["tipoAbono"]["descripcion"] : null
+                "idTipoAbonoACapital" => $datos["tipoAbono"] != null ? $datos["tipoAbono"]["id"] : null
             ]
         );
 
@@ -244,7 +247,7 @@ class PayController extends Controller
         \App\Loan::updatePendientes($data->idPrestamo);
 
         $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Pago", "renglon" => "transaccion"])->first());
-        \App\Transaction::make($datos["usuario"], $datos["caja"], $data->monto, $tipo, $data->id, $datos["concepto"]);
+        \App\Transaction::make($datos["usuario"], $caja, $data->monto, $tipo, $data->id, $datos["concepto"], $datos["tipoPago"]["id"]);
 
         return Response::json([
 //            "data" => Pay::customFirst($data->id),

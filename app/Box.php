@@ -3,31 +3,34 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class Box extends Model
 {
     protected $fillable = [
-        'descripcion', 
-        'balanceInicial', 
-        'validarDesgloseEfectivo', 
-        'validarDesgloseCheques', 
-        'validarDesgloseTarjetas', 
-        'validarDesgloseTransferencias', 
-        'idEmpresa', 
+        'descripcion',
+        'balanceInicial',
+        'validarDesgloseEfectivo',
+        'validarDesgloseCheques',
+        'validarDesgloseTarjetas',
+        'validarDesgloseTransferencias',
+        'idEmpresa',
     ];
 
     public static function validateMonto($caja, $monto = 0){
         if($caja == null)
             return true;
-        
-        $caja = Box::whereId($caja["id"])->first();
+
+//        $caja = Box::whereId($caja["id"])->first();
         if($caja == null){
             abort(402, "La caja no existe");
             return;
         }
 
-        return 
+        if($caja->balance == null)
+            return abort(404, "La caja no ha sido abierta aun");
+
+        return
         $caja->balance < abs($monto)
         ?
         abort(404, "La caja no tiene monto suficiente.")
@@ -38,16 +41,21 @@ class Box extends Model
     public static function updateBalance($idCaja){
         // $idCaja = (is_object($caja)) ? $caja->id : $caja["id"];
 
-        \DB::select("
-            UPDATE boxes SET balance = (
-                SELECT
-                    IF(balance.balance IS NOT NULL, balance.balance, 0)
-                FROM (
-                    SELECT SUM(transactions.monto) as balance FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1
-                ) AS balance
-            ) 
-            WHERE id = $idCaja
-        ");
+//        \DB::select("
+//            UPDATE boxes SET balance = (
+//                SELECT
+//                    IF(balance.balance IS NOT NULL, balance.balance, 0)
+//                FROM (
+//                    SELECT SUM(transactions.monto) as balance FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1
+//                ) AS balance
+//            )
+//            WHERE id = $idCaja
+//        ");
+
+//        collect()->sum
+        $transactions = Transaction::query()->where(["status" => 1, "idCaja" => $idCaja])->with("incomeOrExpenseType")->get();
+        $balance = $transactions->sum(function($d){return $d->incomeOrExpenseType->descripcion == "Egresos" ? -1 * $d->monto : $d->monto;});
+        Box::query()->whereId($idCaja)->update(["balance" => $balance]);
     }
 
     public static function customAll($ids){
@@ -58,7 +66,7 @@ class Box extends Model
             b.descripcion,
             b.balance,
             b.balanceInicial,
-            (SELECT 
+            (SELECT
                 JSON_ARRAYAGG(
                     JSON_OBJECT(
                         'id', t.id,
@@ -68,8 +76,8 @@ class Box extends Model
                         'usuario', (SELECT JSON_OBJECT('id', u.id, 'nombres', u.nombres, 'apellidos', u.apellidos, 'usuario', u.usuario)),
                         'tipo', (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion))
                     )
-                ) 
-                FROM transactions AS t 
+                )
+                FROM transactions AS t
                 INNER JOIN users u ON u.id = t.idUsuario
                 INNER JOIN types tp ON tp.id = t.idTipo
                 WHERE t.idCaja = b.id AND t.status = 1
@@ -89,16 +97,16 @@ class Box extends Model
                     )
                 )
                 FROM (
-                    SELECT 
+                    SELECT
                     *
                     FROM
                     closures
-                    WHERE closures.idCaja = b.id 
+                    WHERE closures.idCaja = b.id
                     ORDER BY closures.created_at desc
                 ) c
                 INNER JOIN users u ON u.id = C.idUsuario
                 WHERE c.idCaja = b.id
-                
+
             ) cierres
             FROM boxes b
             WHERE  b.id in ($idCajas)
@@ -114,7 +122,7 @@ class Box extends Model
             b.descripcion,
             b.balance,
             b.balanceInicial,
-            (SELECT 
+            (SELECT
                 JSON_ARRAYAGG(
                     JSON_OBJECT(
                         'id', t.id,
@@ -124,8 +132,8 @@ class Box extends Model
                         'usuario', (SELECT JSON_OBJECT('id', u.id, 'nombres', u.nombres, 'apellidos', u.apellidos, 'usuario', u.usuario)),
                         'tipo', (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion))
                     )
-                ) 
-                FROM (SELECT * FROM transactions WHERE transactions.idCaja = b.id ORDER BY  transactions.id DESC) AS t 
+                )
+                FROM (SELECT * FROM transactions WHERE transactions.idCaja = b.id ORDER BY  transactions.id DESC) AS t
                 INNER JOIN users u ON u.id = t.idUsuario
                 INNER JOIN types tp ON tp.id = t.idTipo
                 WHERE t.idCaja = b.id AND t.status = 1
@@ -146,11 +154,11 @@ class Box extends Model
                     )
                 )
                 FROM (
-                    SELECT 
+                    SELECT
                     *
                     FROM
                     closures
-                    WHERE closures.idCaja = b.id 
+                    WHERE closures.idCaja = b.id
                     ORDER BY closures.created_at desc
                 ) c
                 INNER JOIN users u ON u.id = C.idUsuario
@@ -165,7 +173,7 @@ class Box extends Model
 
     public static function transacciones($idCaja){
         // return \DB::select("
-        //     SELECT 
+        //     SELECT
         //     JSON_ARRAYAGG(
         //         JSON_OBJECT(
         //             'id', t.id,
@@ -175,22 +183,22 @@ class Box extends Model
         //             'usuario', (SELECT JSON_OBJECT('id', u.id, 'nombres', u.nombres, 'apellidos', u.apellidos, 'usuario', u.usuario)),
         //             'tipo', (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion))
         //         )
-        //     ) 
-        //     FROM transactions AS t 
+        //     )
+        //     FROM transactions AS t
         //     INNER JOIN users u ON u.id = t.idUsuario
         //     INNER JOIN types tp ON tp.id = t.idTipo
         //     WHERE t.idCaja = $idCaja AND t.status = 1
         // ");
         return \DB::select("
-            SELECT 
-            
+            SELECT
+
                     t.id,
                     t.monto,
                     t.comentario,
                     t.created_at,
                     (SELECT JSON_OBJECT('id', u.id, 'nombres', u.nombres, 'apellidos', u.apellidos, 'usuario', u.usuario)) usuario,
                     (SELECT JSON_OBJECT('id', tp.id, 'descripcion', tp.descripcion)) tipo
-            FROM (SELECT * FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1) AS t 
+            FROM (SELECT * FROM transactions WHERE transactions.idCaja = $idCaja AND transactions.status = 1) AS t
             INNER JOIN users u ON u.id = t.idUsuario
             INNER JOIN types tp ON tp.id = t.idTipo
             WHERE t.idCaja = $idCaja AND t.status = 1
@@ -199,12 +207,12 @@ class Box extends Model
     }
 
     public static function cierres($idCaja){
-        
+
         return \DB::select("
-            SELECT 
-            
+            SELECT
+
                     c.id,
-                    c.monto,
+                    c.totalSegunUsuario,
                     c.montoCheques,
                     c.montoTarjetas,
                     c.montoTransferencias,
@@ -222,6 +230,12 @@ class Box extends Model
     {
         //Modelo, foreign key, foreign key, local key, local key
         return $this->hasMany('App\Transaction', 'idCaja');
+    }
+
+    public function closures()
+    {
+        //Modelo, foreign key, foreign key, local key, local key
+        return $this->hasMany('App\Closure', 'idCaja');
     }
 
 

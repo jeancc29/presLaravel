@@ -37,7 +37,7 @@ class CreatePaysTable extends Migration
             $table->foreign('idCliente')->references('id')->on('customers');
             $table->foreign('idPrestamo')->references('id')->on('loans');
             $table->foreign('idEmpresa')->references('id')->on('companies');
-            $table->foreign('idTipoAbonoACapital')->references('id')->on('companies');
+            $table->foreign('idTipoAbonoACapital')->references('id')->on('types');
 //            $table->foreign("idRenegociacion")->references("id")->on("renegotiations");
 
         });

@@ -17,31 +17,58 @@ class Transaction extends Model
         'status',
         'idTipo',
         'idTipoPago',
-        'idReferencia'
+        'idReferencia',
+        'idTipoIngresoEgreso'
     ];
 
-    public static function make($usuario, $caja, $monto, $tipo, $idReferencia, $comentario, $tipoPago = null, $caja2 = null){
+    public function user()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\User', 'id', 'idUsuario');
+    }
+
+    public function type()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipo');
+    }
+
+    public function box()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Box', 'id', 'idCaja');
+    }
+
+    public function incomeOrExpenseType()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Type', 'id', 'idTipoIngresoEgreso');
+    }
+
+    public static function make($usuario, ?Box $caja, $monto, $tipo, $idReferencia, $comentario, $idTipoPago = null, $caja2 = null){
         if($caja == null)
             return;
 
         if(!isset($caja))
             return;
 
-        $monto = (Transaction::isSum($tipo, $monto)) ? abs($monto) : \App\Classes\Helper::toNegative($monto);
+//        $monto = (Transaction::isSum($tipo, $monto)) ? abs($monto) : \App\Classes\Helper::toNegative($monto);
+        $tipoIngresoEgreso = Transaction::getTipoIngresoEgreso($tipo, $monto);
 
 
         $arrayOfData = [
             "idEmpresa" => $usuario["idEmpresa"],
             "idUsuario" => $usuario["id"],
-            "idCaja" => $caja["id"],
+            "idCaja" => $caja->id,
             "monto" => $monto,
             "idTipo" => $tipo["id"],
             "idReferencia" => $idReferencia,
-            "comentario" => $comentario
+            "comentario" => $comentario,
+            "idTipoIngresoEgreso" => $tipoIngresoEgreso->id
         ];
 
-        if($tipoPago != null)
-            $arrayOfData["idTipoPago"] = $tipoPago["id"];
+        if($idTipoPago != null)
+            $arrayOfData["idTipoPago"] = $idTipoPago;
 
         if($tipo["descripcion"] == "Balance inicial" || $tipo["descripcion"] == "Ajuste caja" || $tipo["descripcion"] == "Transferencia entre cajas"){
             $t = Transaction::create($arrayOfData);
@@ -62,8 +89,8 @@ class Transaction extends Model
         }
 
         // $t = Transaction::create($arrayOfData);
-        if($monto < 0 && $caja["balance"] < abs($monto)){
-            abort(402, "La caja no tiene monto suficiente");
+        if($monto < 0 && $caja->balance < abs($monto)){
+            abort(402, "La caja no tiene monto suficiente monto: $monto balance: " . $caja["balance"]);
             return;
         }
 
@@ -78,34 +105,34 @@ class Transaction extends Model
         \App\Box::updateBalance($t->idCaja);
     }
 
-    static function isSum($tipo, $monto = null){
-        $isSum = false;
+    static function getTipoIngresoEgreso($tipo, $monto = null){
+        $isIngreso = false;
         switch ($tipo["descripcion"]) {
             case 'Balance inicial':
-                $isSum = true;
+                $isIngreso = true;
                 break;
             case 'Pago':
-                $isSum = true;
+                $isIngreso = true;
                 break;
             case 'Préstamo':
-                $isSum = false;
+                $isIngreso = false;
                 break;
             case 'Cancelación préstamo':
-                $isSum = true;
+                $isIngreso = true;
                 break;
             case 'Ajuste capital':
-                $isSum = ($monto > 0 ) ? false : true;
+                $isIngreso = ($monto > 0 ) ? false : true;
                 break;
             case 'Gasto':
-                $isSum = false;
+                $isIngreso = false;
                 break;
 
             default:
                 # code...
-                $isSum = ($monto > 0) ? true : false;
+                $isIngreso = ($monto > 0) ? true : false;
                 break;
         }
-        return $isSum;
+        return $isIngreso ? Type::query()->whereDescripcion("Ingresos")->first() : Type::query()->whereDescripcion("Egresos")->first();
     }
 
     public static function cancel($tipo, $idReferencia, $comentario = null){

@@ -25,6 +25,7 @@ class ExpenseResource extends JsonResource
             "caja" => $this->caja,
             "idTipo" => $this->idTipo,
             "tipo" => $this->tipo,
+            "tipoPago" => $this->paymentType,
         ];
     }
 }

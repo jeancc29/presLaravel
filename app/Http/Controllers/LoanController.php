@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Amortization;
+use App\Box;
 use App\Http\Resources\LoanResource;
 use App\Http\Resources\LoanWithAmortizationResource;
 use App\Http\Resources\TypeResource;
@@ -204,7 +205,8 @@ class LoanController extends Controller
         $prestamo = Loan::query()->find($datos["id"]);
         $montoEntregadoDeLaRenegociacion = 0;
 
-
+//        $ddd = collect($datos["diasExcluidos"])->implode("weekday");
+//        abort(404, "Holaaa: " . $ddd . " hey: " . Carbon::now()->dayOfWeek);
 
         // \DB::transaction(function() use($datos){
 
@@ -213,10 +215,12 @@ class LoanController extends Controller
 //            try {
                 \DB::beginTransaction();
 
+                $caja = isset($datos["caja"]) ? Box::find($datos["caja"]["id"]) : null;
+
                 /// VALIDATE DATA
                 \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
                 \App\Classes\Helper::validatePermissions($datos["usuario"], "Prestamos", ["Guardar"]);
-                \App\Box::validateMonto($datos["caja"], $datos["monto"]);
+                \App\Box::validateMonto($caja, $datos["monto"]);
 
                 /// VALIDATE DATA TO EDIT
                 if(!$datos["esRenegociacion"])
@@ -420,7 +424,7 @@ class LoanController extends Controller
                         $tipoPlazo = Type::find($datos["tipoPlazo"]["id"]);
                         $tipoAmortizacion = Type::find($datos["tipoAmortizacion"]["id"]);
                         $fechaPrimerPago = $prestamo->id == $datos["id"] ? new Carbon($prestamo->fechaProximoPago) : new Carbon($datos["fechaPrimerPago"]);
-                        $montoAmortizacion = $prestamo->id == $datos["id"]  && !$datos["esRenegociacion"] ? $prestamo->capitalPendiente : $prestamo->monto;
+                        $montoAmortizacion = $prestamo->id == $datos["id"] && !$datos["esRenegociacion"] ? $prestamo->capitalPendiente : $prestamo->monto;
 
                         $amortizationCollection = Amortization::amortizar($montoAmortizacion, $prestamo->porcentajeInteres, $prestamo->numeroCuotas, $tipoAmortizacion, $tipoPlazo, $fechaPrimerPago, $diasExcluidos);
                         $prestamo->cuota = $amortizationCollection[0]["cuota"];
@@ -482,8 +486,12 @@ class LoanController extends Controller
                             );
                     }
 
-                    $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Préstamo", "renglon" => "transaccion"])->first());
-                    \App\Transaction::make($datos["usuario"], $datos["caja"], $prestamo->monto, $tipo, $prestamo->id, "Desembolso de Préstamo");
+                    if(!isset($datos["id"]) || ($prestamo->id == $datos["id"] && $datos["esRenegociacion"])) {
+                        $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Préstamo", "renglon" => "transaccion"])->first());
+                        $montoTransaction = !$datos["esRenegociacion"] ? $prestamo->monto : $montoEntregadoDeLaRenegociacion;
+                        \App\Transaction::make($datos["usuario"], $caja, $montoTransaction, $tipo, $prestamo->id, "Desembolso de Préstamo", $datos["desembolso"]["tipo"]["id"]);
+                    }
+
                     \DB::commit();
 
                     Loan::updatePendientes($prestamo->id);
@@ -580,7 +588,7 @@ class LoanController extends Controller
 
          return Response::json([
             "prestamo" => new LoanWithAmortizationResource($prestamo),
-            "tipos" => \App\Type::whereIn("renglon", ["desembolso", "abonoCapital"])->cursor(),
+            "tipos" => \App\Type::query()->whereIn("renglon", ["desembolso", "abonoCapital"])->where("descripcion", "!=", "Efectivo en ruta")->cursor(),
             "cajas" => $cajas,
             "empresa" => new \App\Http\Resources\CompanyResource(\App\Company::where("idEmpresa", $usuario->idEmpresa)->first()),
             "configuracionRecibo" => \App\Receipt::where("idEmpresa", $usuario->idEmpresa)->first()

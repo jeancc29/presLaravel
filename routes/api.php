@@ -43,6 +43,7 @@ Route::post('/boxes/indexTransacciones', 'BoxController@indexTransacciones')->na
 Route::post('/boxes/transacciones', 'BoxController@transacciones');
 Route::post('/boxes/close', 'BoxController@close');
 Route::post('/boxes/showClosure', 'BoxController@showClosure');
+Route::post('/boxes/getBoxDataToClose', 'BoxController@getBoxDataToClose')->name("boxes.getBoxDataToClose");
 
 Route::post('/banks', 'BankController@index')->name("banks");
 Route::post('/banks/store', 'BankController@store');

@@ -11,9 +11,13 @@ class TypeSeeder extends Seeder
      */
     public function run()
     {
+        \App\Type::updateOrCreate(["descripcion" => "Hombre"], ["renglon" => "sexo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Mujer"], ["renglon" => "sexo"]);
+        \App\Type::updateOrCreate(["descripcion" => "Mujer"], ["renglon" => "sexo"]);
         \App\Type::updateOrCreate(["descripcion" => "Cedula identidad"], ["renglon" => "documento"]);
         \App\Type::updateOrCreate(["descripcion" => "RNC"], ["renglon" => "documento"]);
         \App\Type::updateOrCreate(["descripcion" => "Pasaporte"], ["renglon" => "documento"]);
+
         \App\Type::updateOrCreate(["descripcion" => "Ninguna"], ["renglon" => "gasto"]);
         \App\Type::updateOrCreate(["descripcion" => "Combustible"], ["renglon" => "gasto"]);
         \App\Type::updateOrCreate(["descripcion" => "Gastos Diversos"], ["renglon" => "gasto"]);
@@ -103,5 +107,8 @@ class TypeSeeder extends Seeder
 
         \App\Type::updateOrCreate(["descripcion" => "Disminuir valor cuota"], ["renglon" => "abonoCapital"]);
         \App\Type::updateOrCreate(["descripcion" => "Disminuir plazo"], ["renglon" => "abonoCapital"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Ingresos"], ["renglon" => "contabilidad"]);
+        \App\Type::updateOrCreate(["descripcion" => "Egresos"], ["renglon" => "contabilidad"]);
     }
 }

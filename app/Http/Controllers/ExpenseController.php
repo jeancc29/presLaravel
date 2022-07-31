@@ -40,11 +40,12 @@ class ExpenseController extends Controller
         return Response::json([
             'mensaje' => '',
             "hola" => $idTipo,
-            'tipos' => $retornarTipos ? \App\Type::whereRenglon("gasto")->cursor() : [],
+            'tipos' => $retornarTipos ? \App\Type::whereIn("renglon", ["gasto", "desembolso"])->cursor() : [],
             'cajas' => $retornarCajas ? \App\Box::where("idEmpresa", $requestData["idEmpresa"])->cursor() : [],
             'gastos' => $retornarGastos == false ? [] : \App\Http\Resources\ExpenseResource::collection(Expense::where("idEmpresa", $requestData["idEmpresa"])
                 ->when($idTipo != null, function($q) use($idTipo){$q->where("idTipo", $idTipo);})
                 ->when($idCaja != null, function($q) use($idCaja){$q->where("idTipo", $idCaja);})
+                ->with("tipo", "paymentType")
                 ->cursor()
             ),
         ]);
@@ -78,8 +79,12 @@ class ExpenseController extends Controller
             'data.idCaja' => '',
             'data.caja' => '',
             'data.tipo' => '',
+            'data.tipoPago' => '',
             'data.idUsuario' => '',
         ])["data"];
+
+        $caja = $datos["caja"] ?? null;
+        $caja = $caja != null ? \App\Box::find($caja["id"]) : null;
 
 
         // \DB::transaction(function() use($datos){
@@ -92,7 +97,7 @@ class ExpenseController extends Controller
         try {
             \App\Classes\Helper::validatePermissions($datos["usuario"], "Rutas", ["Guardar"]);
             if(isset($datos["caja"]))
-                \App\Box::validateMonto($datos["caja"], $datos["monto"]);
+                \App\Box::validateMonto($caja, $datos["monto"]);
 
             $gasto = Expense::updateOrCreate(
                 ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
@@ -101,8 +106,9 @@ class ExpenseController extends Controller
                     "concepto" => $datos["concepto"],
                     "monto" => $datos["monto"],
                     "comentario" => $datos["comentario"],
-                    "idCaja" => isset($datos["caja"]) ? $datos["caja"]["id"] : null,
+                    "idCaja" => $caja != null ? $caja->id : null,
                     "idTipo" => $datos["tipo"]["id"],
+                    "idTipoPago" => $datos["tipoPago"]["id"],
                     "idUsuario" => $datos["usuario"]["id"],
                     "idEmpresa" => $datos["usuario"]["idEmpresa"],
                 ]
@@ -111,7 +117,7 @@ class ExpenseController extends Controller
 
             if(isset($datos["caja"])){
                 $tipo = \App\Classes\Helper::stdClassToArray(\App\Type::where(["descripcion" => "Gasto", "renglon" => "transaccion"])->first());
-                \App\Transaction::make($datos["usuario"], $datos["caja"], $gasto->monto, $tipo, $gasto->id, $datos["tipo"]["descripcion"]);
+                \App\Transaction::make($datos["usuario"], $caja, $gasto->monto, $tipo, $gasto->id, $datos["tipo"]["descripcion"], $datos["tipoPago"]["id"]);
             }
 
             \DB::commit();

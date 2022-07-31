@@ -164,7 +164,8 @@ class Amortization extends Model
                     $amortizationsAbonoACapitalDisminuirCuota[$index]->capitalSaldado = $capitalSaldado;
                     $amortizationsAbonoACapitalDisminuirCuota[$index]->interesSaldado = $interesSaldado;
                 }
-                else
+                else {
+                    $fechaTmp = !Amortization::esDiaExcluido($listaDiasExcluidos, $fechaPrimerPago) ? $fechaPrimerPago : Amortization::aumentarFecha($tipoPlazo, new Carbon($fechaPrimerPago->toDateTimeString()), $fechaPrimerPago->day, $listaDiasExcluidos);
                     $amortizationCollection->push([
                         "numeroCuota" => $index + 1,
                         "cuota" => $montoCuota,
@@ -173,9 +174,10 @@ class Amortization extends Model
                         "capitalSaldado" => $capitalSaldado,
                         "interesSaldado" => $interesSaldado,
                         "capitalRestante" => $capitalRestante,
-                        "fecha" => $fechaPrimerPago,
+                        "fecha" => $fechaTmp,
                         "tipo" => $tipoAmortizacion
                     ]);
+                }
 
 
             }else{
@@ -300,7 +302,8 @@ public static function amortizacionAlemanODisminuirCuota(float $monto, float $in
               $amortizationsAbonoACapitalDisminuirCuota[$index]->capitalSaldado = $capitalSaldado;
               $amortizationsAbonoACapitalDisminuirCuota[$index]->interesSaldado = $interesSaldado;
           }
-          else
+          else {
+              $fechaTmp = !Amortization::esDiaExcluido($listaDiasExcluidos, $fechaPrimerPago) ? $fechaPrimerPago : Amortization::aumentarFecha($tipoPlazo, new Carbon($fechaPrimerPago->toDateTimeString()), $fechaPrimerPago->day, $listaDiasExcluidos);
               $amortizationCollection->push([
                   "numeroCuota" => $index + 1,
                   "cuota" => $montoCuota,
@@ -309,9 +312,10 @@ public static function amortizacionAlemanODisminuirCuota(float $monto, float $in
                   "capitalSaldado" => $capitalSaldado,
                   "interesSaldado" => $interesSaldado,
                   "capitalRestante" => $capitalRestante,
-                  "fecha" => $fechaPrimerPago,
+                  "fecha" => $fechaTmp,
                   "tipo" => $tipoAmortizacion
               ]);
+          }
       } else {
           // print("AmortizacionService frances: ${index} length: ${lista.length}");
           // print("AmortizacionService frances: ${lista[index - 1].capitalRestante}");
@@ -431,7 +435,8 @@ public static function amortizacionInteresFijo(float $monto, float $interes, int
               $amortizationsAbonoACapitalDisminuirCuota[$index]->capitalSaldado = $capitalSaldado;
               $amortizationsAbonoACapitalDisminuirCuota[$index]->interesSaldado = $interesSaldado;
           }
-          else
+          else {
+              $fechaTmp = !Amortization::esDiaExcluido($listaDiasExcluidos, $fechaPrimerPago) ? $fechaPrimerPago : Amortization::aumentarFecha($tipoPlazo, new Carbon($fechaPrimerPago->toDateTimeString()), $fechaPrimerPago->day, $listaDiasExcluidos);
               $amortizationCollection->push([
                   "numeroCuota" => $index + 1,
                   "cuota" => $montoCuota,
@@ -440,9 +445,10 @@ public static function amortizacionInteresFijo(float $monto, float $interes, int
                   "capitalSaldado" => $capitalSaldado,
                   "interesSaldado" => $interesSaldado,
                   "capitalRestante" => $capitalRestante,
-                  "fecha" => $fechaPrimerPago,
+                  "fecha" => $fechaTmp,
                   "tipo" => $tipoAmortizacion
-            ]);
+              ]);
+          }
       } else {
           // print("AmortizacionService frances: ${index} length: ${lista.length}");
           // print("AmortizacionService frances: ${lista[index - 1].capitalRestante}");
@@ -543,6 +549,8 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
           $capitalRestante = $monto - $montoCapital;
           $capitalSaldado = $montoCapital;
           $interesSaldado = $montoInteres;
+          $fechaTmp = !Amortization::esDiaExcluido($listaDiasExcluidos, $fechaPrimerPago) ? $fechaPrimerPago : Amortization::aumentarFecha($tipoPlazo, new Carbon($fechaPrimerPago->toDateTimeString()), $fechaPrimerPago->day, $listaDiasExcluidos);
+
           $amortizationCollection->push([
               "numeroCuota" => $index + 1,
               "cuota" => $montoCuota,
@@ -551,7 +559,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
               "capitalSaldado" => $capitalSaldado,
               "interesSaldado" => $interesSaldado,
               "capitalRestante" => $capitalRestante,
-              "fecha" => $fechaPrimerPago,
+              "fecha" => $fechaTmp,
               "tipo" => $tipoAmortizacion
           ]);
       } else if ($index + 1 < $numeroCuota && $index > 0) {
@@ -676,11 +684,14 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
           while ($esDiaExcluido != 1) {
               $counter++;
 //              echo "\n\n\App\Amortization before search esDiaExcluido: $esDiaExcluido";
-              $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+              $esDiaExcluido = Amortization::esDiaExcluido($listaDiasExcluidos, $fecha);
 //              $esDiaExcluido = true;
 //              echo "\n\n\App\Amortization after search esDiaExcluido: $esDiaExcluido";
               if ($esDiaExcluido) $fecha = $fecha->addDay();
-              if($counter == 4)
+//              $nulo = $esDiaExcluido == null;
+//              if($nulo)
+//                throw new \Exception("holaaa: " . $esDiaExcluido . " fecha: " .$fecha->dayOfWeek);
+              if($counter == 8)
                   return $fecha;
           }
         }
@@ -693,7 +704,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = $fecha->addDays(7);
               while ($esDiaExcluido != 1) {
-                $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
                 if ($esDiaExcluido) $fecha = $fecha->addDay();
               }
             }
@@ -705,7 +716,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = $fecha->addDays(14);
                 while ($esDiaExcluido != 1) {
-                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
 //                    $esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                     if ($esDiaExcluido) $fecha = $fecha->addDay();
                 }
@@ -718,7 +729,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = $fecha->addDays(15);
                 while ($esDiaExcluido != 1) {
-                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
 //                    $esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                     if ($esDiaExcluido) $fecha = $fecha->addDay();
                 }
@@ -743,7 +754,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 }
           while ($esDiaExcluido != 1) {
 //              $fecha = $fecha->addDays(7);
-              $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+              $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
 //              esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
             if ($esDiaExcluido) $fecha = $fecha->addDay();
           }
@@ -760,7 +771,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                   $esDiaExcluido = false;
                   $fecha = Helper::getNextMonth($fecha, $dayOfTheMonthToAmortize);
                   while ($esDiaExcluido != 1) {
-                      $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                      $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
         //              esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                       if ($esDiaExcluido) $fecha = $fecha->addDay();
                   }
@@ -774,7 +785,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = $fecha->addYearNoOverflow();
               while ($esDiaExcluido != 1) {
-                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
     //              $esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                 if ($esDiaExcluido) $fecha = $fecha->addDay();
               }
@@ -787,7 +798,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = Helper::getNextMonth($fecha, $dayOfTheMonthToAmortize, 3);
                 while ($esDiaExcluido != 1) {
-                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
     //              esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                   if ($esDiaExcluido) $fecha = $fecha.addDay();
                 }
@@ -800,7 +811,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                 $esDiaExcluido = false;
                 $fecha = Helper::getNextMonth($fecha, $dayOfTheMonthToAmortize, 6);
                 while ($esDiaExcluido != 1) {
-                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                    $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
         //              esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                     if ($esDiaExcluido) $fecha = $fecha->addDay();
                 }
@@ -825,7 +836,7 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
                   $fecha = Helper::getNextMonth($fecha);
               }
               while ($esDiaExcluido != 1) {
-                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date->weekday == $fecha->dayOfWeek;}) != null;
+                  $esDiaExcluido = $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
 //                  esDiaExcluido = (listaDiasExcluidos.indexWhere((element) => element.weekday == fecha.weekday) != -1);
                 if ($esDiaExcluido) $fecha = $fecha->addDay();
               }
@@ -835,6 +846,9 @@ public static function amortizacionCapitalAlFinal(float $monto, float $interes, 
     return $fecha;
 }
 
+    public static function esDiaExcluido(?Collection $listaDiasExcluidos, Carbon $fecha){
+        return !($listaDiasExcluidos == null) && $listaDiasExcluidos->first(function($date) use($fecha){return $date["weekday"] == $fecha->dayOfWeek;}) != null;
+    }
 //    public static function abonoACapitalDisminuirPlazo(Loan $prestamo, float $montoAbono) : Collection{
 //        $capitalPendiente = $prestamo->capitalPendiente - $montoAbono;
 //
