@@ -84,6 +84,7 @@ class CompanyController extends Controller
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Configuraciones", ["Empresa"]);
 
+        $nacionalidad = $datos["nacionalidad"] != null ? $datos["nacionalidad"]["id"] : null;
 
         //Cliente
         $fotoPerfil = null;
@@ -111,7 +112,7 @@ class CompanyController extends Controller
                 "idContacto" => $contacto->id,
                 "idTipoMora" => $datos["tipoMora"]["id"],
                 "idMoneda" => $datos["moneda"]["id"],
-                "idNacionalidad" => $datos["nacionalidad"]["id"],
+                "idNacionalidad" => $nacionalidad,
                 "porcentajeMora" => $datos["porcentajeMora"],
                 "diasGracia" => $datos["diasGracia"],
                 "status" => 1,
