@@ -36,11 +36,10 @@ class CompanySeeder extends Seeder
         $empresa = \App\Company::updateOrCreate(
             ["nombre" => "Prueba"],
             [
-             "status" => 1, 
-             "idTipoMora" => $tipo->id, 
-             "idMoneda" => $moneda->id, 
-             "idContacto" => $contacto->id, 
-             "idDireccion" => $direccion->id,
+             "status" => 1,
+             "idTipoMora" => $tipo->id,
+             "idMoneda" => $moneda->id,
+             "idContacto" => $contacto->id,
              "idEmpresa" => 1
             ]
         );

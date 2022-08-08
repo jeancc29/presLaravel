@@ -11,7 +11,8 @@ class Customer extends Model
         "fechaNacimiento", "numeroDependientes",
         "sexo", "estadoCivil", "estado", "idContacto",
         "idDireccion", "idDocumento", "tipoVivienda", "tiempoEnVivienda", "referidoPor",
-        "idTrabajo", "idNegocio", "idEmpresa", "idTipoSituacionLaboral", "idRuta"
+        "idTrabajo", "idNegocio", "idEmpresa", "idTipoSituacionLaboral", "idRuta",
+        "idTipoSexo", "idTipoEstadoCivil", "idTipoVivienda"
     ];
 
     public function documento()
@@ -49,10 +50,10 @@ class Customer extends Model
                 c.estado,
                 (SELECT SUM(loans.capitalPendiente) FROM loans WHERE loans.status = 1 AND loans.idCliente = c.id) AS capitalPendiente,
                 (SELECT JSON_OBJECT('id', co.id, 'telefono', co.telefono, 'extension', co.extension, 'celular', co.celular, 'correo', co.correo, 'fax', co.fax, 'facebook', co.facebook, 'instagram', co.instagram)) AS contacto,
-                (SELECT 
+                (SELECT
                     JSON_OBJECT(
-                        'id', d.id, 
-                        'descripcion', d.descripcion, 
+                        'id', d.id,
+                        'descripcion', d.descripcion,
                         'idTipo', d.idTipo,
                         'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = d.idTipo)
                     )
@@ -90,36 +91,36 @@ class Customer extends Model
                 c.estado,
                 (SELECT JSON_OBJECT('id', n.id, 'descripcion', n.descripcion)) AS nacionalidad,
                 (SELECT JSON_OBJECT(
-                    'id', a.id, 
+                    'id', a.id,
                     'direccion', a.direccion,
                     'sector', a.sector,
                     'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = a.idEstado),
                     'ciudad', (SELECT JSON_OBJECT('id', cities.id, 'nombre', cities.nombre) FROM cities WHERE cities.id = a.idCiudad)
                 )) AS direccion,
                 (SELECT JSON_OBJECT('id', co.id, 'telefono', co.telefono, 'extension', co.extension, 'celular', co.celular, 'correo', co.correo, 'fax', co.fax, 'facebook', co.facebook, 'instagram', co.instagram)) AS contacto,
-                (SELECT 
+                (SELECT
                     JSON_OBJECT(
-                        'id', d.id, 
-                        'descripcion', d.descripcion, 
+                        'id', d.id,
+                        'descripcion', d.descripcion,
                         'idTipo', d.idTipo,
                         'tipo', (SELECT JSON_OBJECT('id', types.id, 'descripcion', types.descripcion) FROM types WHERE types.id = d.idTipo)
                     )
                 ) AS documento,
-                (SELECT 
+                (SELECT
                     IF(
                         j.id IS NULL,
                         NULL,
                         JSON_OBJECT(
-                            'id', j.id, 
-                            'nombre', j.nombre, 
+                            'id', j.id,
+                            'nombre', j.nombre,
                             'ocupacion', j.ocupacion,
                             'ingresos', j.ingresos,
                             'otrosIngresos', j.otrosIngresos,
                             'fechaIngreso', j.fechaIngreso,
                             'contacto', (SELECT JSON_OBJECT('id', contacts.id, 'telefono', contacts.telefono, 'extension', contacts.extension, 'celular', contacts.celular, 'correo', contacts.correo, 'fax', contacts.fax, 'facebook', contacts.facebook, 'instagram', contacts.instagram) FROM contacts WHERE contacts.id = j.idContacto),
-                            'direccion', (SELECT 
+                            'direccion', (SELECT
                                 JSON_OBJECT(
-                                'id', addresses.id, 
+                                'id', addresses.id,
                                 'direccion', addresses.direccion,
                                 'sector', addresses.sector,
                                 'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = addresses.idEstado),
@@ -128,18 +129,18 @@ class Customer extends Model
                         )
                     )
                 ) AS trabajo,
-                (SELECT 
+                (SELECT
                     IF(
                         b.id IS NULL,
                         NULL,
                         JSON_OBJECT(
-                            'id', b.id, 
-                            'nombre', b.nombre, 
+                            'id', b.id,
+                            'nombre', b.nombre,
                             'tipo', b.tipo,
                             'tiempoExistencia', b.tiempoExistencia,
-                            'direccion', (SELECT 
+                            'direccion', (SELECT
                                 JSON_OBJECT(
-                                'id', addresses.id, 
+                                'id', addresses.id,
                                 'direccion', addresses.direccion,
                                 'sector', addresses.sector,
                                 'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = addresses.idEstado),
@@ -149,7 +150,7 @@ class Customer extends Model
                     )
                 ) AS negocio,
                 (
-                    SELECT 
+                    SELECT
                         JSON_ARRAYAGG(
                             JSON_OBJECT(
                                 'id', r.id,

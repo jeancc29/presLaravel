@@ -88,8 +88,8 @@ class CustomerController extends Controller
             'ciudades' => \App\City::cursor(),
             'estados' => \App\State::cursor(),
             'data' => \App\Customer::customFirst($datos["idCliente"]),
-            'tipos' => \App\Type::whereRenglon("situacionLaboral")->orderBy("id", "desc")->get(),
-            'tipoDocumentos' => \App\Type::whereRenglon("documento")->orderBy("id", "desc")->get(),
+            'tipos' => \App\Type::whereIn("renglon", ["situacionLaboral", "documento", "sexo", "estadoCivil", "vivienda"])->orderBy("id")->get(),
+//            'tipoDocumentos' => \App\Type::whereRenglon("documento")->orderBy("id", "desc")->get(),
             "nacionalidades" => \App\Nationality::all(),
             "rutas" => \App\Route::where("idEmpresa", $datos["idEmpresa"])->get(),
         ], 200);
@@ -149,8 +149,8 @@ class CustomerController extends Controller
             'data.apodo' => '',
             'data.fechaNacimiento' => '',
             'data.numeroDependientes' => '',
-            'data.sexo' => '',
-            'data.estadoCivil' => '',
+            'data.tipoSexo' => '',
+            'data.tipoEstadoCivil' => '',
             'data.nacionalidad' => '',
             'data.tipoVivienda' => '',
             'data.tiempoEnVivienda' => '',
@@ -308,8 +308,9 @@ class CustomerController extends Controller
                 $customer->apodo = $datos["apodo"];
                 $customer->fechaNacimiento = $datos["fechaNacimiento"];
                 $customer->numeroDependientes = $datos["numeroDependientes"];
-                $customer->sexo = $datos["sexo"];
-                $customer->estadoCivil = $datos["estadoCivil"];
+                $customer->idTipoSexo = ($datos["tipoSexo"] != null) ? $datos["tipoSexo"]["id"] : null;
+                $customer->idTipoEstadoCivil = ($datos["tipoEstadoCivil"]) ? $datos["tipoEstadoCivil"]["id"] : null;
+                $customer->idTipoVivienda = ($datos["tipoVivienda"]) ? $datos["tipoVivienda"]["id"] : null;
                 $customer->idNacionalidad = $datos["nacionalidad"]["id"];
                 $customer->tipoVivienda = $datos["tipoVivienda"];
                 $customer->tiempoEnVivienda = $datos["tiempoEnVivienda"];

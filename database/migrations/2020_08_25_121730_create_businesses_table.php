@@ -19,6 +19,8 @@ class CreateBusinessesTable extends Migration
             $table->string("tipo")->nullable();
             $table->string("tiempoExistencia")->nullable();
             $table->unsignedInteger("idDireccion");
+            $table->unsignedInteger("idMoneda");
+            $table->unsignedInteger("idNacionalidad");
             // $table->unsignedInteger("idContacto");
             // $table->unsignedInteger("idCliente");
 

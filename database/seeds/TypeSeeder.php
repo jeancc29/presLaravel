@@ -13,8 +13,19 @@ class TypeSeeder extends Seeder
     {
         \App\Type::updateOrCreate(["descripcion" => "Hombre"], ["renglon" => "sexo"]);
         \App\Type::updateOrCreate(["descripcion" => "Mujer"], ["renglon" => "sexo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Mujer"], ["renglon" => "sexo"]);
-        \App\Type::updateOrCreate(["descripcion" => "Cedula identidad"], ["renglon" => "documento"]);
+        \App\Type::updateOrCreate(["descripcion" => "Otro..."], ["renglon" => "sexo"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Soltero"], ["renglon" => "estadoCivil"]);
+        \App\Type::updateOrCreate(["descripcion" => "Casado"], ["renglon" => "estadoCivil"]);
+        \App\Type::updateOrCreate(["descripcion" => "Unión libre"], ["renglon" => "estadoCivil"]);
+        \App\Type::updateOrCreate(["descripcion" => "Divorciado"], ["renglon" => "estadoCivil"]);
+        \App\Type::updateOrCreate(["descripcion" => "Viudo"], ["renglon" => "estadoCivil"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Propia"], ["renglon" => "vivienda"]);
+        \App\Type::updateOrCreate(["descripcion" => "Alquilada"], ["renglon" => "vivienda"]);
+        \App\Type::updateOrCreate(["descripcion" => "Pagando"], ["renglon" => "vivienda"]);
+
+        \App\Type::updateOrCreate(["descripcion" => "Cédula identidad"], ["renglon" => "documento"]);
         \App\Type::updateOrCreate(["descripcion" => "RNC"], ["renglon" => "documento"]);
         \App\Type::updateOrCreate(["descripcion" => "Pasaporte"], ["renglon" => "documento"]);
 

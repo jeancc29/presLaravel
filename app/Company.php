@@ -8,14 +8,8 @@ class Company extends Model
 {
     protected $fillable = [
         "id", "nombre", "foto", "diasGracia", "porcentajeMora",
-        "idDireccion", "idContacto", "idTipoMora", "idMoneda", "status", "idEmpresa"
+        "direccion", "idContacto", "idTipoMora", "idMoneda", "status", "idEmpresa", "idNacionalidad"
     ];
-
-    public function direccion()
-    {
-        //Modelo, foreign key, local key
-        return $this->hasOne('App\Address', 'id', 'idDireccion');
-    }
 
     public function contacto()
     {

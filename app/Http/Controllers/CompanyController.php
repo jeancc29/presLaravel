@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Company;
+use App\Nationality;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Response; 
+use Illuminate\Support\Facades\Response;
 
 class CompanyController extends Controller
 {
@@ -35,15 +36,14 @@ class CompanyController extends Controller
 
         \App\Classes\Helper::validateApiKey($data["apiKey"]);
         \App\Classes\Helper::validatePermissions($data, "Configuraciones", ["Empresa"]);
-        
+
         $empresa = Company::first();
         return Response::json([
             "mensaje" => "",
             "empresa" => ($empresa == null) ? null : new \App\Http\Resources\CompanyResource(Company::where("idEmpresa", $data["idEmpresa"])->first()),
-            'ciudades' => \App\City::cursor(),
-            'estados' => \App\State::cursor(),
             'tipos' => \App\Type::whereRenglon("mora")->get(),
             'monedas' => \App\Coin::all(),
+            'nacionalidades' => Nationality::all(),
         ], 201);
     }
 
@@ -78,11 +78,12 @@ class CompanyController extends Controller
             'data.diasGracia' => '',
             'data.porcentajeMora' => '',
             'data.tipoMora' => '',
+            'data.nacionalidad' => '',
         ])["data"];
 
         \App\Classes\Helper::validateApiKey($datos["usuario"]["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos["usuario"], "Configuraciones", ["Empresa"]);
-        
+
 
         //Cliente
         $fotoPerfil = null;
@@ -101,24 +102,16 @@ class CompanyController extends Controller
             ]
             );
 
-        $direccion = \App\Address::updateOrCreate(
-            ["id" => $datos["direccion"]["id"]],
-            [
-                "direccion" => $datos["direccion"]["direccion"],
-                "idCiudad" => $datos["direccion"]["ciudad"]["id"],
-                "idEstado" => $datos["direccion"]["estado"]["id"],
-            ]
-            );
-
         $empresa = Company::updateOrCreate(
             ["id" => $datos["id"], "idEmpresa" => $datos["usuario"]["idEmpresa"]],
             [
                 "foto" => $fotoPerfil,
                 "nombre" => $datos["nombre"],
-                "idDireccion" => $direccion->id,
+                "direccion" => $datos["direccion"],
                 "idContacto" => $contacto->id,
                 "idTipoMora" => $datos["tipoMora"]["id"],
                 "idMoneda" => $datos["moneda"]["id"],
+                "idNacionalidad" => $datos["nacionalidad"]["id"],
                 "porcentajeMora" => $datos["porcentajeMora"],
                 "diasGracia" => $datos["diasGracia"],
                 "status" => 1,

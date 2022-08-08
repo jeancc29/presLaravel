@@ -21,9 +21,9 @@ class CreateCustomersTable extends Migration
             $table->string("apodo")->nullable();
             $table->date("fechaNacimiento");
             $table->integer("numeroDependientes")->nullable();
-            $table->string("sexo");
-            $table->string("estadoCivil");
-            $table->string("tipoVivienda");
+            $table->unsignedInteger('idTipoSexo')->nullable();
+            $table->unsignedInteger('idTipoEstadoCivil')->nullable();
+            $table->unsignedInteger("idTipoVivienda")->nullable();
             $table->string("tiempoEnVivienda")->nullable();
             $table->string("referidoPor")->nullable();
             $table->integer("estado")->default(1);
@@ -35,7 +35,11 @@ class CreateCustomersTable extends Migration
             $table->unsignedInteger('idNegocio')->nullable();
             $table->unsignedInteger('idTipoSituacionLaboral')->nullable();
             $table->unsignedInteger('idRuta')->nullable();
-            
+
+            $table->foreign("idTipoSexo")->references("id")->on("types");
+            $table->foreign("idTipoEstadoCivil")->references("id")->on("types");
+            $table->foreign("idTipoVivienda")->references("id")->on("types");
+
             $table->timestamps();
         });
     }

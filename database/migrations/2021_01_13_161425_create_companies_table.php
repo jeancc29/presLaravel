@@ -22,15 +22,17 @@ class CreateCompaniesTable extends Migration
             $table->decimal("porcentajeMora", 10, 2)->default(0);
             $table->unsignedInteger("idEmpresa");
             $table->unsignedInteger("idTipoMora");
-            $table->unsignedInteger("idDireccion");
+            $table->text("direccion")->nullable();
             $table->unsignedInteger("idContacto");
             $table->unsignedInteger("idMoneda");
+            $table->unsignedInteger("idNacionalidad")->nullable();
             // $table->unsignedInteger("idContacto");
             // $table->unsignedInteger("idCliente");
 
-            $table->foreign("idDireccion")->references("id")->on("addresses");
             $table->foreign("idContacto")->references("id")->on("contacts");
             $table->foreign("idTipoMora")->references("id")->on("types");
+//            $table->foreign("idNacionalidad")->references("id")->on("nationalities");
+//            $table->foreign("idMoneda")->references("id")->on("coins");
             $table->timestamps();
         });
     }
