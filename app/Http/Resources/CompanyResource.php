@@ -21,10 +21,11 @@ class CompanyResource extends JsonResource
             "nombre" => $this->nombre,
             "diasGracia" => $this->diasGracia,
             "porcentajeMora" => $this->porcentajeMora,
-            "direccion" => new \App\Http\Resources\AddressResource($this->direccion),
+            "direccion" => $this->direccion,
             "moneda" => $this->moneda,
             "contacto" => $this->contacto,
             "tipoMora" => $this->tipoMora,
+            "nacionalidad" => $this->nationality
         ];
     }
 }

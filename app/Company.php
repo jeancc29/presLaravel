@@ -23,6 +23,12 @@ class Company extends Model
         return $this->hasOne('App\Coin', 'id', 'idMoneda');
     }
 
+    public function nationality()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Nationality', 'id', 'idNacionalidad');
+    }
+
     public function tipoMora()
     {
         //Modelo, foreign key, local key

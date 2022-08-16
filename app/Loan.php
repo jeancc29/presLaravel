@@ -38,6 +38,7 @@ class Loan extends Model
         "status",
         "idRuta",
         "cuota",
+        "idMoneda",
     ];
 
     public function user()

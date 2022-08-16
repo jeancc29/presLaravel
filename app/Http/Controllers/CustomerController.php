@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Company;
 use App\Customer;
+use App\Nationality;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Intervention\Image\Facades\Image;
@@ -83,6 +85,9 @@ class CustomerController extends Controller
         \App\Classes\Helper::validateApiKey($datos["apiKey"]);
         \App\Classes\Helper::validatePermissions($datos, "Clientes", ["Guardar"]);
 
+        $company = Company::query()->find($datos["idEmpresa"]);
+
+
         return Response::json([
             'mensaje' => '',
             'ciudades' => \App\City::cursor(),
@@ -92,6 +97,10 @@ class CustomerController extends Controller
 //            'tipoDocumentos' => \App\Type::whereRenglon("documento")->orderBy("id", "desc")->get(),
             "nacionalidades" => \App\Nationality::all(),
             "rutas" => \App\Route::where("idEmpresa", $datos["idEmpresa"])->get(),
+            "nacionalidades" => Nationality::query()
+                ->select("id", "descripcion")
+                ->when($company != null, function($q) use($company){ $q->orderByRaw("FIELD(id, {$company->idNacionalidad}) DESC"); })
+                ->get()
         ], 200);
     }
 
@@ -431,10 +440,10 @@ class CustomerController extends Controller
                     "apodo" => $datos["apodo"],
                     "fechaNacimiento" => $datos["fechaNacimiento"],
                     "numeroDependientes" => $datos["numeroDependientes"],
-                    "sexo" => $datos["sexo"],
-                    "estadoCivil" => $datos["estadoCivil"],
+                    "idTipoSexo" => ($datos["tipoSexo"] != null) ? $datos["tipoSexo"]["id"] : null,
+                    "idTipoEstadoCivil" => ($datos["tipoEstadoCivil"]) ? $datos["tipoEstadoCivil"]["id"] : null,
                     "idNacionalidad" => $datos["nacionalidad"]["id"],
-                    "tipoVivienda" => $datos["tipoVivienda"],
+                    "idTipoVivienda" => ($datos["tipoVivienda"]) ? $datos["tipoVivienda"]["id"] : null,
                     "tiempoEnVivienda" => $datos["tiempoEnVivienda"],
                     "referidoPor" => $datos["referidoPor"],
                     "idEmpresa" => $datos["usuario"]["idEmpresa"],

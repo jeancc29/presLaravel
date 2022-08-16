@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Amortization;
 use App\Box;
+use App\Coin;
+use App\Company;
 use App\Http\Resources\LoanResource;
 use App\Http\Resources\LoanWithAmortizationResource;
 use App\Http\Resources\TypeResource;
@@ -68,6 +70,7 @@ class LoanController extends Controller
         \App\Classes\Helper::validatePermissions($data, "Prestamos", ["Ver"]);
 
         $idEmpresa = $data["idEmpresa"];
+        $company = Company::query()->find($idEmpresa);
 
         $fecha = getdate();
         $fechaInicial = $fecha['year'].'-'.$fecha['mon'].'-'.$fecha['mday'] . ' 00:00:00';
@@ -104,6 +107,10 @@ class LoanController extends Controller
             "configuracionPrestamo" => \App\Loansetting::where("idEmpresa", $idEmpresa)->first(),
             "rutas" => \App\Route::where("idEmpresa", $idEmpresa)->get(),
             "cobradores" => \App\User::customAll($idEmpresa, \App\Role::whereDescripcion("Cobrador")->first()->id),
+            "monedas" => Coin::query()
+                ->select("id", "nombre")
+                ->when($company != null, function($q) use($company){ $q->orderByRaw("FIELD(id, {$company->idMoneda}) DESC"); })
+                ->get(),
         ]);
     }
 

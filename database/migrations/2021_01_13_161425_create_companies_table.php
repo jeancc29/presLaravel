@@ -18,8 +18,8 @@ class CreateCompaniesTable extends Migration
             $table->string("nombre");
             $table->string("foto")->nullable();
             $table->integer("status");
-            $table->integer("diasGracia")->default(0);
-            $table->decimal("porcentajeMora", 10, 2)->default(0);
+            $table->integer("diasGracia")->nullable();
+            $table->decimal("porcentajeMora", 10, 2)->nullable();
             $table->unsignedInteger("idEmpresa");
             $table->unsignedInteger("idTipoMora");
             $table->text("direccion")->nullable();
