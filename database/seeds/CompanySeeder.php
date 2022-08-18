@@ -13,6 +13,7 @@ class CompanySeeder extends Seeder
     {
         $tipo = \App\Type::where(["renglon" => "mora", "descripcion" => "Capital pendiente"])->first();
         $moneda = \App\Coin::where(["codigo" => "DOP"])->first();
+        $nacionalidad = \App\Nationality::whereDescripcion("Dominicano")->first();
         $contacto = \App\Contact::updateOrCreate(
             ["correo" => "no@no.com"],
             [
@@ -40,7 +41,8 @@ class CompanySeeder extends Seeder
              "idTipoMora" => $tipo->id,
              "idMoneda" => $moneda->id,
              "idContacto" => $contacto->id,
-             "idEmpresa" => 1
+             "idEmpresa" => 1,
+//            "idNacionalidad" => $nacionalidad->id
             ]
         );
     }

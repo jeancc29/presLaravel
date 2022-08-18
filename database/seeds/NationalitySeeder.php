@@ -29,9 +29,10 @@ class NationalitySeeder extends Seeder
         \App\Nationality::updateOrCreate(
             ["descripcion" => "Cubano"]
         );
-        \App\Nationality::updateOrCreate(
+        $n = \App\Nationality::updateOrCreate(
             ["descripcion" => "Dominicano"]
         );
+        \App\Company::query()->update(["idNacionalidad" => $n->id]);
         \App\Nationality::updateOrCreate(
             ["descripcion" => "Ecuatoriano"]
         );
