@@ -20,7 +20,7 @@ class CreateJobsTable extends Migration
             $table->decimal("ingresos", 20, 2);
             $table->decimal("otrosIngresos", 20, 2);
             $table->date("fechaIngreso");
-            $table->unsignedInteger("idDireccion");
+            $table->unsignedInteger("idDireccion")->nullable();
             // $table->unsignedInteger("idCliente");
             $table->unsignedInteger("idContacto");
 

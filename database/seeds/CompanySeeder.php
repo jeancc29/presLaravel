@@ -27,10 +27,8 @@ class CompanySeeder extends Seeder
         $direccion = \App\Address::updateOrCreate(
             ["direccion" => "Direccion de prueba"],
             [
-                "idEstado" => $estado->id,
-                "idCiudad" => $ciudad->id,
-                "idPais" => $pais->id,
-                "sector" => "Prueba"
+                "direccion2" => "hola",
+                "codigoPostal" => '',
             ]
             );
 

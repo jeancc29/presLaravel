@@ -15,4 +15,10 @@ class Business extends Model
         "idContacto",
         "idCliente"
     ];
+
+    public function address()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Address', 'id', 'idDireccion');
+    }
 }

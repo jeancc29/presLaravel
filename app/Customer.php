@@ -9,28 +9,46 @@ class Customer extends Model
     protected $fillable = [
         "id", "foto", "nombres", "apellidos", "apodo", "idNacionalidad",
         "fechaNacimiento", "numeroDependientes",
-        "sexo", "estadoCivil", "estado", "idContacto",
-        "idDireccion", "idDocumento", "tipoVivienda", "tiempoEnVivienda", "referidoPor",
+        "estado", "idContacto",
+        "idDireccion", "idDocumento", "tiempoEnVivienda", "referidoPor",
         "idTrabajo", "idNegocio", "idEmpresa", "idTipoSituacionLaboral", "idRuta",
         "idTipoSexo", "idTipoEstadoCivil", "idTipoVivienda"
     ];
 
-    public function documento()
+    public function document()
     {
         //Modelo, foreign key, local key
         return $this->hasOne('App\Document', 'id', 'idDocumento');
     }
 
-    public function contacto()
+    public function nationality()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Nationality', 'id', 'idNacionalidad');
+    }
+
+    public function contact()
     {
         //Modelo, foreign key, local key
         return $this->hasOne('App\Contact', 'id', 'idContacto');
     }
 
-    public function trabajo()
+    public function job()
     {
         //Modelo, foreign key, local key
         return $this->hasOne('App\Job', 'id', 'idTrabajo');
+    }
+
+    public function business()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Business', 'id', 'idNegocio');
+    }
+
+    public function address()
+    {
+        //Modelo, foreign key, local key
+        return $this->hasOne('App\Address', 'id', 'idDireccion');
     }
 
     public static function customAll($idEmpresa, $idCliente = null, $arrayOfLimit = array(0, 50)){
@@ -45,8 +63,8 @@ class Customer extends Model
                 c.apodo,
                 c.numeroDependientes,
                 c.fechaNacimiento,
-                c.sexo,
-                c.estadoCivil,
+                c.idTipoSexo,
+                c.idTipoEstadoCivil,
                 c.estado,
                 (SELECT SUM(loans.capitalPendiente) FROM loans WHERE loans.status = 1 AND loans.idCliente = c.id) AS capitalPendiente,
                 (SELECT JSON_OBJECT('id', co.id, 'telefono', co.telefono, 'extension', co.extension, 'celular', co.celular, 'correo', co.correo, 'fax', co.fax, 'facebook', co.facebook, 'instagram', co.instagram)) AS contacto,
@@ -86,16 +104,15 @@ class Customer extends Model
                 c.apodo,
                 c.numeroDependientes,
                 c.fechaNacimiento,
-                c.sexo,
-                c.estadoCivil,
+                c.idTipoSexo,
+                c.idTipoEstadoCivil,
                 c.estado,
                 (SELECT JSON_OBJECT('id', n.id, 'descripcion', n.descripcion)) AS nacionalidad,
                 (SELECT JSON_OBJECT(
                     'id', a.id,
                     'direccion', a.direccion,
-                    'sector', a.sector,
-                    'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = a.idEstado),
-                    'ciudad', (SELECT JSON_OBJECT('id', cities.id, 'nombre', cities.nombre) FROM cities WHERE cities.id = a.idCiudad)
+                    'direccion2', a.direccion2,
+                    'codigoPostal', a.codigoPostal
                 )) AS direccion,
                 (SELECT JSON_OBJECT('id', co.id, 'telefono', co.telefono, 'extension', co.extension, 'celular', co.celular, 'correo', co.correo, 'fax', co.fax, 'facebook', co.facebook, 'instagram', co.instagram)) AS contacto,
                 (SELECT
@@ -122,9 +139,8 @@ class Customer extends Model
                                 JSON_OBJECT(
                                 'id', addresses.id,
                                 'direccion', addresses.direccion,
-                                'sector', addresses.sector,
-                                'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = addresses.idEstado),
-                                'ciudad', (SELECT JSON_OBJECT('id', cities.id, 'nombre', cities.nombre) FROM cities WHERE cities.id = addresses.idCiudad)
+                                'direccion2', addresses.direccion2,
+                                'codigoPostal', addresses.codigoPostal
                             ) FROM addresses WHERE addresses.id = j.idDireccion)
                         )
                     )
@@ -142,9 +158,8 @@ class Customer extends Model
                                 JSON_OBJECT(
                                 'id', addresses.id,
                                 'direccion', addresses.direccion,
-                                'sector', addresses.sector,
-                                'estado', (SELECT JSON_OBJECT('id', states.id, 'nombre', states.nombre) FROM states WHERE states.id = addresses.idEstado),
-                                'ciudad', (SELECT JSON_OBJECT('id', cities.id, 'nombre', cities.nombre) FROM cities WHERE cities.id = addresses.idCiudad)
+                                'direccion2', addresses.direccion2,
+                                'codigoPostal', addresses.codigoPostal
                             ) FROM addresses WHERE addresses.id = b.idDireccion)
                         )
                     )

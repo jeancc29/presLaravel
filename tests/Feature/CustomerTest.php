@@ -68,6 +68,8 @@ class CustomerTest extends TestCase
         $ciudad = \App\City::first();
         $pais = \App\Country::first();
         $tipo = \App\Type::whereRenglon("situacionLaboral")->first();
+        $tipoSexo = \App\Type::whereRenglon("sexo")->first();
+        $tipoEstadoCivil = \App\Type::whereRenglon("estadoCivil")->first();
         $nacionalidad = \App\Nationality::first();
         $response = $this->post(route('customers.store'), [
             "data" => [
@@ -79,14 +81,14 @@ class CustomerTest extends TestCase
                 "apodo" => "culo",
                 "fechaNacimiento" => "1994-08-29",
                 "numeroDependientes" => 1,
-                "sexo" => "Masculino",
-                "estadoCivil" => "Soltero",
+                "tipoSexo" => $tipoSexo->toArray(),
+                "tipoEstadoCivil" => $tipoEstadoCivil->toArray(),
                 "nacionalidad" => "Culo",
-                "tipoVivienda" => "Culo",
+                "tipoVivienda" => null,
                 "tiempoEnVivienda" => "Culo",
                 "referidoPor" => "Culo",
                 "documento" => ["id" => 1, "descripcion" => "CUlo", "tipo" => ["id" => 1, "descripcion" => "culo"]],
-                "direccion" => ["id" => null, "idEstado" => $estado->id, "idCiudad" => $ciudad->id, "idPais" => $pais->id, "sector" => "culo", "numero" => 1, "direccion" => "culo"],
+                "direccion" => ["id" => null, "direccion2" => "culo", "codigoPostal" => 1, "direccion" => "culo"],
                 "contacto" => ["id" => null, "telefono" => "999", "celular" => "829", "correo" => "no@no.com", "facebook" => null, "instagram" => null, "extension" => "123", "fax" => "123"],
                 "trabajo" => null,
                 "negocio" => null,
